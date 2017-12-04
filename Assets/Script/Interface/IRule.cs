@@ -8,11 +8,11 @@ namespace VRiscuit.Interface {
         /// <summary>
         /// マッチ条件となるオブジェクトのテーブル
         /// </summary>
-        Dictionary<string, IVRiscuitObject[]> ObjectTypeTable { get;  }
+        IVRiscuitObjectSet ObjectSet { get;  }
         /// <summary>
         /// ルールを適用するメソッド
         /// </summary>
         /// <param name="objectsTable"></param>
-        void Apply(Dictionary<string, IVRiscuitObject[]> objectsTable);
+        void Apply(IVRiscuitObjectSet objectsTable);
     }
 }

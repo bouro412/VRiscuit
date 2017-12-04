@@ -17,7 +17,7 @@ namespace VRiscuit.Rule.Change {
             _angle = angle;
         }
 
-        void IChange.UpdateObject(IVRiscuitObject[] objects, OffSet offset) {
+        void IChange.UpdateObject(IVRiscuitObjectSet objects, OffSet offset) {
             RuleManager.Instance.GenerateObject(_type, _position, _angle);
         }    
         

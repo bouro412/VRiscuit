@@ -12,17 +12,17 @@ namespace VRiscuit {
         public static RuleManager Instance { get; private set; }
 
 
-        private IRule[] _rules;
+        private List<IRule> _rules = new List<IRule>();
 
         /// <summary>
         /// 各オブジェクトのprefavを取り出すテーブル
         /// </summary>
-        public Dictionary<string, GameObject> VRiscuitObjectTable;
+        public Dictionary<string, GameObject> VRiscuitPrefavTable;
 
         /// <summary>
         /// 現在のオブジェクトのテーブル
         /// </summary>
-        private Dictionary<string, List<IVRiscuitObject>> CurrentObjectTable;
+        private IVRiscuitObjectSet CurrentObjectSet;
 
         #region 公開している汎用関数
 
@@ -34,7 +34,7 @@ namespace VRiscuit {
         /// <param name="angle"></param>
         /// <returns></returns>
         public IVRiscuitObject GenerateObject(string objectName, Vector3 position, Vector3 angle) {
-            var obj = Instantiate(VRiscuitObjectTable[objectName],
+            var obj = Instantiate(VRiscuitPrefavTable[objectName],
                                                    position,
                                                    Quaternion.Euler(angle),
                                                    transform);
@@ -47,7 +47,7 @@ namespace VRiscuit {
                 Debug.LogError(objectName + "はVRiscuitObjectではありません");
                 return null;
             }
-            CurrentObjectTable[objectName].Add(vobj);
+            CurrentObjectSet.GetByType(objectName).Add(vobj);
             return vobj;
         }
 
@@ -57,19 +57,19 @@ namespace VRiscuit {
         /// <param name="name"></param>
         /// <param name="prefab"></param>
         public void RegisterObject(string name, GameObject prefab) {
-            VRiscuitObjectTable.Add(name, prefab);
-            CurrentObjectTable.Add(name, new List<IVRiscuitObject>());
+            VRiscuitPrefavTable.Add(name, prefab);
         }
 
         #endregion
 
+        #region Unity Event
         /// <summary>
         /// 初期化。シングルトンと必要なテーブルの用意
         /// </summary>
         private void Awake() {
             Instance = this;
-            VRiscuitObjectTable = new Dictionary<string, GameObject>();
-            CurrentObjectTable = new Dictionary<string, List<IVRiscuitObject>>();
+            VRiscuitPrefavTable = new Dictionary<string, GameObject>();
+            CurrentObjectSet = new VRiscuitObjectSet();
         }
 
         /// <summary>
@@ -78,6 +78,7 @@ namespace VRiscuit {
         private void Update() {
             ApplyRule();
         }
+        #endregion
 
         #region ルール適用周り
 
@@ -98,62 +99,71 @@ namespace VRiscuit {
         /// </summary>
         /// <returns></returns>
         private Candidate[] GetApplyCandidates() {
-            return _rules.Select(rule =>
-                rule.ObjectTypeTable.Select(nameAndObjs => {
-                    var len = nameAndObjs.Value.Length;
-                    var ch = choice(nameAndObjs.Value, len);
-                    return new KeyValuePair<string, List<List<IVRiscuitObject>>>(nameAndObjs.Key, ch);
-                }).Aggregate(new List<Dictionary<string, IVRiscuitObject[]>>(),
-                             ((result, nameAndObjs) => {
-                                 if (result.Count == 0) {
-                                     foreach (var objs in nameAndObjs.Value) {
-                                         var dict = new Dictionary<string, IVRiscuitObject[]>();
-                                         dict.Add(nameAndObjs.Key, objs.ToArray());
-                                         result.Add(dict);
-                                     }
-                                 } else {
-                                     foreach (var dict in result) {
-                                         var newdict = new Dictionary<string, IVRiscuitObject[]>(dict);
-                                         foreach (var objs in nameAndObjs.Value) {
-                                             newdict.Add(nameAndObjs.Key, objs.ToArray());
-                                             result.Add(newdict);
-                                         }
-                                     }
-                                 }
-                                 return result;
-                             })).Select(dict =>  new Candidate(rule, dict)))
-                             .SelectMany(i => i).ToArray();
+            var result = new List<Candidate>();
+            foreach(var rule in _rules) {
+                var objs = rule.ObjectSet.TypeTable;
+                // オブジェクト候補を作れるかのチェック
+                
+                var canMakeCandidate = true;
+                var typesAndObjs = objs.Select(kvp => {
+                    var currentObjs = CurrentObjectSet.GetByType(kvp.Key);
+                    if (currentObjs == null || currentObjs.Count < kvp.Value.Count) {
+                        canMakeCandidate = false;
+                        return new KeyValuePair<string, List<List<IVRiscuitObject>>>();
+                    }
+                    var candInThisType = Permutation(currentObjs, kvp.Value.Count());
+                    return new KeyValuePair<string, List<List<IVRiscuitObject>>>(kvp.Key, candInThisType.ToList());
+                }).ToList();
+                if (canMakeCandidate == false) break;
+                var lis = Choice(typesAndObjs.Select(i => i.Value).ToList()).Select(flatten);
+                foreach(var objlist in lis) {
+                    var objset = new VRiscuitObjectSet(objlist);
+                    var cand = new Candidate(rule, objset);
+                    result.Add(cand);
+                }
+            }
+            return result.ToArray();
+        }
+
+        private List<T> flatten<T>(List<List<T>> lislis) {
+            return lislis.SelectMany(i => i).ToList();
         }
 
         /// <summary>
-        /// objlistからlength個の組合せを列挙する
+        /// objlistからlength個の順列を列挙する
         /// GetApplyCandidatesの補助関数
         /// </summary>
         /// <param name="objlist"></param>
         /// <param name="length"></param>
         /// <returns></returns>
-        private List<List<IVRiscuitObject>> choice(IVRiscuitObject[] objlist, int length) {
-            if (length == 0) {
-                var ret = new List<List<IVRiscuitObject>>();
-                ret.Add(new List<IVRiscuitObject>());
-                return ret;
+        private IEnumerable<List<T>> Choice<T>(List<List<T>> objlist) {
+            if(objlist.Count() == 0) {
+                yield break;
             }
-            if (objlist.Length == 0) {
-                return null;
-            }
-            var notcontains = choice(objlist.Skip(1).ToArray(), length);
-            var contains = choice(objlist.Skip(1).ToArray(), length - 1);
-            if (contains == null && notcontains == null)
-                return null;
-            if(contains != null) {
-                foreach(var lis in contains) {
-                    lis.Add(objlist[0]);
+            var head = objlist[0];
+            var tail = objlist.Skip(0).ToList();
+            foreach(var t in head) {
+                foreach(var restChoice in Choice(tail)) {
+                    var ret = new List<T>(restChoice);
+                    ret.Add(t);
+                    yield return ret;
                 }
-                if (notcontains != null)
-                    contains.AddRange(notcontains);
-                return contains;
             }
-            return notcontains;
+        }
+
+        private IEnumerable<List<T>> Permutation<T>(IEnumerable<T> lis, int length) {
+            if (lis == null || lis.Count() < length) yield break;
+            if (length == 0) yield return new List<T>();
+            else {
+                for (int i = 0; i < lis.Count(); i++) {
+                    var item = lis.ElementAt(i);
+                    foreach (var perm in Permutation<T>(lis.Skip(i), length - 1)) {
+                        var p = new List<T>(perm);
+                        p.Add(item);
+                        yield return p;
+                    }
+                }
+            }
         }
 
         /// <summary>

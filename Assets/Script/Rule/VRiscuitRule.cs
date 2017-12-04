@@ -4,30 +4,44 @@ using System.Linq;
 using System.Text;
 using VRiscuit.Interface;
 
-namespace VRiscuit {
+namespace VRiscuit.Rule {
+    /// <summary>
+    /// VRiscuit中の一般的なルールを表す
+    /// </summary>
     class VRiscuitRule : IRule {
         public IBeforePattern BeforePattern { get; private set; }
         public IAfterPattern AfterPattern { get; private set; }
-
+        
         /// <summary>
-        /// 
+        /// オブジェクトのテーブルを返す
         /// </summary>
-        Dictionary<string, IVRiscuitObject[]> IRule.ObjectTypeTable
+        IVRiscuitObjectSet IRule.ObjectSet
         {
             get
             {
                 return _objectTypeTable;
             }
         }
-        private Dictionary<string, IVRiscuitObject[]> _objectTypeTable;
+        /// <summary>
+        /// テーブルの実体
+        /// </summary>
+        private IVRiscuitObjectSet _objectTypeTable;
 
+        /// <summary>
+        /// </summary>
+        /// <param name="before"></param>
+        /// <param name="after"></param>
         public VRiscuitRule(IBeforePattern before, IAfterPattern after) {
             BeforePattern = before;
             AfterPattern = after;
-            _objectTypeTable = MakeTable(BeforePattern);
+            _objectTypeTable = BeforePattern.VRiscuitObjects;
         }
 
-        void IRule.Apply(Dictionary<string, IVRiscuitObject[]> objectsTable) {
+        /// <summary>
+        /// ルールの適用
+        /// </summary>
+        /// <param name="objectsTable"></param>
+        void IRule.Apply(IVRiscuitObjectSet objectsTable) {
             throw new NotImplementedException();
         }
 

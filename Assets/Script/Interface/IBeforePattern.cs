@@ -4,6 +4,6 @@ using UnityEngine;
 
 namespace VRiscuit.Interface {
     interface IBeforePattern {
-        IVRiscuitObject[] VRiscuitObjects { get; }
+        IVRiscuitObjectSet VRiscuitObjects { get; }
     }
 }

@@ -6,6 +6,6 @@ using VRiscuit.Rule.Change;
 
 namespace VRiscuit.Interface {
     interface IChange {
-        void UpdateObject(IVRiscuitObject[] objects, OffSet offset);
+        void UpdateObject(IVRiscuitObjectSet objects, OffSet offset);
     }
 }

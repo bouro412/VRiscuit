@@ -6,16 +6,16 @@ using VRiscuit.Interface;
 
 namespace VRiscuit.Script.Rule {
     class BeforePattern : IBeforePattern {
-        IVRiscuitObject[] IBeforePattern.VRiscuitObjects
+        IVRiscuitObjectSet IBeforePattern.VRiscuitObjects
         {
             get
             {
                 return _vriscuitObjects;
             }
         }
-        private IVRiscuitObject[] _vriscuitObjects;
+        private IVRiscuitObjectSet _vriscuitObjects;
 
-        public BeforePattern(IVRiscuitObject[] objects) {
+        public BeforePattern(IVRiscuitObjectSet objects) {
             _vriscuitObjects = objects;
         }
     }

@@ -9,11 +9,11 @@ using UnityEngine;
 namespace VRiscuit.Rule {
     class Candidate {
         private IRule _rule;
-        private Dictionary<string, IVRiscuitObject[]> _table;
+        private IVRiscuitObjectSet _table;
         private ScoreCoefficient _scoreCoefficient;
         public float Score { get; private set; }
 
-        public Candidate (IRule rule, Dictionary<string, IVRiscuitObject[]> table){
+        public Candidate (IRule rule, IVRiscuitObjectSet table){
             _rule = rule;
             _table = table;
             _scoreCoefficient = new ScoreCoefficient();
@@ -23,8 +23,8 @@ namespace VRiscuit.Rule {
         #region scoreの計算
         private float CalcScore(ScoreCoefficient ef) {
             var score = 0.0f;
-            var fieldObjectList = _table.Values.SelectMany(i => i).ToArray();
-            var ruleObjectList = _rule.ObjectTypeTable.Values.SelectMany(i => i).ToArray();
+            var fieldObjectList = _table.ObjectArray;
+            var ruleObjectList = _rule.ObjectSet.ObjectArray;
             var len = fieldObjectList.Length;
             for(int i = 0; i < len - 1; i++) {
                 for(int j = i + 1; j < len; j++) {
@@ -93,14 +93,9 @@ namespace VRiscuit.Rule {
         }
 
         public bool HasSameObject(Candidate another) {
-            foreach (var typeAndObj in _table) {
-                var objs1 = typeAndObj.Value;
-                var objs2 = another._table[typeAndObj.Key];
-                if (objs2 == null) continue;
-                if (objs1.Any(obj1 => objs2.Contains(obj1)))
-                    return true;
-            }
-            return false;
+            var objs1 = _table.ObjectArray;
+            var objs2 = another._table.ObjectArray;
+            return objs1.Intersect(objs2).Count() != 0;
         }
     }
 }
