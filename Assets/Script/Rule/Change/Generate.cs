@@ -6,7 +6,7 @@ using UnityEngine;
 using VRiscuit.Interface;
 
 namespace VRiscuit.Rule.Change {
-    class Generate : IChange {
+    class Generate : IChange , IDescentable{
         private string _type;
         private Vector3 _position;
         private Vector3 _angle;

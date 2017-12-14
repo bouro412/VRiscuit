@@ -7,9 +7,9 @@ using UnityEngine;
 namespace VRiscuit.Rule.Change {
     class OffSet {
         private Vector3 _position;
-        private Vector3 _angle;
+        private Quaternion _angle;
 
-        public OffSet(Vector3 positionOffset, Vector3 angleOffset) {
+        public OffSet(Vector3 positionOffset, Quaternion angleOffset) {
             _position = positionOffset;
             _angle = angleOffset;
         }
@@ -18,8 +18,9 @@ namespace VRiscuit.Rule.Change {
             return position + _position;
         }
 
-        public Vector3 correctAngle(Vector3 angle) {
-            return angle + _angle;
+        public Quaternion correctAngle(Quaternion angle) {
+            return Quaternion.Euler(angle.eulerAngles + _angle.eulerAngles);
         }
+        public static OffSet Zero = new OffSet(Vector3.zero, Quaternion.identity);
     }
 }

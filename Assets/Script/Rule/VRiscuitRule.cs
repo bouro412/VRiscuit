@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using VRiscuit.Interface;
+using VRiscuit.Rule.Change;
+using UnityEngine;
 
 namespace VRiscuit.Rule {
     /// <summary>
@@ -15,17 +17,24 @@ namespace VRiscuit.Rule {
         /// <summary>
         /// オブジェクトのテーブルを返す
         /// </summary>
-        IVRiscuitObjectSet IRule.ObjectSet
+        IVRiscuitObjectSet IRule.BeforeObjectSet
         {
             get
             {
-                return _objectTypeTable;
+                return _beforeObjectSet;
             }
         }
         /// <summary>
         /// テーブルの実体
         /// </summary>
-        private IVRiscuitObjectSet _objectTypeTable;
+        private IVRiscuitObjectSet _beforeObjectSet;
+
+        private IVRiscuitObjectSet _afterObjectSet;
+
+        /// <summary>
+        /// このルールによる変化の一覧
+        /// </summary>
+        private IChange[] _changes;
 
         /// <summary>
         /// </summary>
@@ -34,7 +43,8 @@ namespace VRiscuit.Rule {
         public VRiscuitRule(IBeforePattern before, IAfterPattern after) {
             BeforePattern = before;
             AfterPattern = after;
-            _objectTypeTable = BeforePattern.VRiscuitObjects;
+            _beforeObjectSet = BeforePattern.VRiscuitObjects;
+            _changes = after.Changes;
         }
 
         /// <summary>
@@ -42,26 +52,21 @@ namespace VRiscuit.Rule {
         /// </summary>
         /// <param name="objectsTable"></param>
         void IRule.Apply(IVRiscuitObjectSet objectsTable) {
-            throw new NotImplementedException();
+            foreach(var change in _changes) {
+                change.UpdateObject(objectsTable, OffSet.Zero);
+            }
+            DescentMethod(objectsTable, _beforeObjectSet, _afterObjectSet, _changes.Where(c => c is IDescentable).Select(c => c as IDescentable).ToArray());
         }
 
-        private Dictionary<string, IVRiscuitObject[]> MakeTable(IBeforePattern before) {
-            var lis = before.VRiscuitObjects;
-            var typeAndList = new Dictionary<string, List<IVRiscuitObject>>();
-            foreach (var obj in lis) {
-                if (typeAndList.ContainsKey(obj.Type)) {
-                    typeAndList[obj.Type].Add(obj);
-                } else {
-                    var l = new List<IVRiscuitObject>();
-                    l.Add(obj);
-                    typeAndList.Add(obj.Type, l);
-                }
-            }
-            var ret = new Dictionary<string, IVRiscuitObject[]>();
-            foreach(var tandl in typeAndList) {
-                ret.Add(tandl.Key, tandl.Value.ToArray());
-            }
-            return ret;
+        /// <summary>
+        /// 最急降下法で最適な位置を計算する
+        /// </summary>
+        /// <param name="current"></param>
+        /// <param name="before"></param>
+        /// <param name="after"></param>
+        /// <param name="changes"></param>
+        private void DescentMethod(IVRiscuitObjectSet current, IVRiscuitObjectSet before, IVRiscuitObjectSet after, IDescentable[] changes) {
+            
         }
     }
 }

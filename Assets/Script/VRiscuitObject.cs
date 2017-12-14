@@ -14,6 +14,10 @@ namespace VRiscuit {
             {
                 return transform.position;
             }
+            set
+            {
+                transform.position = value;
+            }
         }
 
         Quaternion IVRiscuitObject.Rotation
@@ -21,6 +25,10 @@ namespace VRiscuit {
             get
             {
                 return transform.rotation;
+            }
+            set
+            {
+                transform.rotation = value;
             }
         }
 

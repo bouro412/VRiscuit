@@ -8,7 +8,7 @@ namespace VRiscuit.Interface {
         /// <summary>
         /// マッチ条件となるオブジェクトのテーブル
         /// </summary>
-        IVRiscuitObjectSet ObjectSet { get;  }
+        IVRiscuitObjectSet BeforeObjectSet { get;  }
         /// <summary>
         /// ルールを適用するメソッド
         /// </summary>
