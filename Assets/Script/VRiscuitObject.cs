@@ -41,5 +41,8 @@ namespace VRiscuit {
         }
         [SerializeField]
         private string _objectType;
+        void Move(Vector3 vector) {
+            transform.Translate(vector);
+        }
     }
 }

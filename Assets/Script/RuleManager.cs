@@ -33,10 +33,10 @@ namespace VRiscuit {
         /// <param name="position"></param>
         /// <param name="angle"></param>
         /// <returns></returns>
-        public IVRiscuitObject GenerateObject(string objectName, Vector3 position, Vector3 angle) {
+        public IVRiscuitObject GenerateObject(string objectName, Vector3 position, Quaternion angle) {
             var obj = Instantiate(VRiscuitPrefavTable[objectName],
                                                    position,
-                                                   Quaternion.Euler(angle),
+                                                   angle,
                                                    transform);
             if (obj == null) {
                 Debug.LogError(objectName + "の生成に失敗");
@@ -183,6 +183,22 @@ namespace VRiscuit {
 
         #endregion
         #region scoreの計算
+
+        public float CalcAppliedFieldScore(IVRiscuitObjectSet afterField, IVRiscuitObjectSet beforeField, IVRiscuitObjectSet beforeRule, IVRiscuitObjectSet afterRule) {
+            var score = 0.0f;
+
+
+            // beforeとafterでオブジェクト数が違う
+            // 
+            return score;
+        }
+        /// <summary>
+        /// Rule上のオブジェクトとフィールドのオブジェクトがどれだけ近い関係にあるかを計算
+        /// </summary>
+        /// <param name="ruleObjectSet"></param>
+        /// <param name="fieldObjectSet"></param>
+        /// <param name="ef"></param>
+        /// <returns></returns>
         public float CalcScore(IVRiscuitObjectSet ruleObjectSet, IVRiscuitObjectSet fieldObjectSet, ScoreCoefficient ef) {
             var score = 0.0f;
             var ruleObjectList = ruleObjectSet.ObjectArray;

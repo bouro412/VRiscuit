@@ -7,7 +7,8 @@ namespace VRiscuit.Interface {
     interface IVRiscuitObjectSet : IEnumerable<IVRiscuitObject>{
         IVRiscuitObject[] ObjectArray { get; }
         Dictionary<string, List<IVRiscuitObject>> TypeTable { get; }
-        void Add(IVRiscuitObject newObject);
+        int Add(IVRiscuitObject newObject);
+        void Delete(int index);
         List<IVRiscuitObject> GetByType(string type);
     }
 }

@@ -3,7 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 using VRiscuit.Interface;
+using VRiscuit.Rule;
 
 namespace VRiscuit {
     /// <summary>
@@ -35,9 +37,10 @@ namespace VRiscuit {
         }
         /// <summary>
         /// オブジェクトの追加
+        /// indexを返り値で返す
         /// </summary>
         /// <param name="newObject"></param>
-        void IVRiscuitObjectSet.Add(IVRiscuitObject newObject) {
+        int IVRiscuitObjectSet.Add(IVRiscuitObject newObject) {
             var type = newObject.Type;
             if (_table.ContainsKey(type)) {
                 _table[type].Add(newObject);
@@ -46,12 +49,35 @@ namespace VRiscuit {
                 lis.Add(newObject);
                 _table.Add(type, lis);
             }
+            var ret = 0;
+            var ary = (this as IVRiscuitObjectSet).ObjectArray;
+            for(int i = 0;i < ary.Length; i++) {
+                if(ary[i] == newObject) {
+                    return i;
+                }
+            }
+            return -1;
         }
         List<IVRiscuitObject> IVRiscuitObjectSet.GetByType(string type) {
             if(_table.ContainsKey(type))
                 return _table[type];
             return null;
         }
+
+        /// <summary>
+        /// Array中のIndexで指定されたオブジェクトを削除
+        /// </summary>
+        /// <param name="index"></param>
+        void IVRiscuitObjectSet.Delete(int index) {
+            var target = (this as IVRiscuitObjectSet).ObjectArray[index];
+            if(target == null) {
+                Debug.LogError("delete target is null");
+                return;
+            }
+            var type = target.Type;
+            _table[type].Remove(target);
+        }
+
         #endregion
         /// <summary>
         /// オブジェクトの配列から生成
@@ -101,6 +127,19 @@ namespace VRiscuit {
         public VRiscuitObjectSet() {
             _table = new Dictionary<string, List<IVRiscuitObject>>();
         }
+
+        /// <summary>
+        /// オブジェクト集合のコピー
+        /// 実体のないcalculateObjectで構成する
+        /// </summary>
+        /// <param name="source"></param>
+        public VRiscuitObjectSet(IVRiscuitObjectSet source) {
+            _table = new Dictionary<string, List<IVRiscuitObject>>();
+            foreach(var kvp in source.TypeTable) {
+                _table.Add(kvp.Key, kvp.Value.Select(obj => new CalculateObject(obj) as IVRiscuitObject).ToList());
+            }
+        }
+
 
         IEnumerator IEnumerable.GetEnumerator() {
             foreach (var v in ((IVRiscuitObjectSet)this).ObjectArray) {

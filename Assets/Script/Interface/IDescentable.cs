@@ -5,7 +5,6 @@ using System.Text;
 
 namespace VRiscuit.Interface {
     interface IDescentable {
-        
 
     }
 }
