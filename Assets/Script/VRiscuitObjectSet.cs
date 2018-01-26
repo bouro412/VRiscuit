@@ -77,6 +77,22 @@ namespace VRiscuit {
             _table[type].Remove(target);
         }
 
+        /// <summary>
+        /// 与えられたパラメーターをもとにobjectの位置、回転を設定する
+        /// </summary>
+        void IVRiscuitObjectSet.SetParameter(float[] parameter) {
+            var array = (this as IVRiscuitObjectSet).ObjectArray;
+            if (array.Length * 6 != parameter.Length) {
+                Debug.LogError("パラメーターの数が合いません");
+                return;
+            }
+            for (int i = 0; i < array.Length; i++) {
+                var obj = array[i];
+                obj.Position = new Vector3(parameter[i * 6], parameter[i * 6 + 1], parameter[i * 6 + 2]);
+                obj.Rotation = Quaternion.Euler(parameter[i * 6 + 3], parameter[i * 6 + 4], parameter[i * 6 + 5]);
+            }
+        }
+
         #endregion
         /// <summary>
         /// オブジェクトの配列から生成
@@ -150,6 +166,22 @@ namespace VRiscuit {
             foreach(var v in ((IVRiscuitObjectSet)this).ObjectArray) {
                 yield return v;
             }
+        }
+
+        /// <summary>
+        /// objectの集合の基礎パラメーターをもとにfloat[]に変換する
+        /// </summary>
+        /// <returns></returns>
+        public float[] ToParameters() {
+            var array = (this as IVRiscuitObjectSet).ObjectArray;
+            float[] ret = array.Select(obj => new float[] { obj.Position.x,
+                                                            obj.Position.y,
+                                                            obj.Position.z,
+                                                            obj.Rotation.eulerAngles.x,
+                                                            obj.Rotation.eulerAngles.y,
+                                                            obj.Rotation.eulerAngles.z}
+                                       ).SelectMany(i => i).ToArray();
+            return ret;
         }
     }
 }

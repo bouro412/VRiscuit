@@ -60,7 +60,6 @@ namespace VRiscuit.Rule {
             BeforePattern = before;
             AfterPattern = after;
             _beforeObjectSet = BeforePattern.VRiscuitObjects;
-            MakeCorrespondList();
         }
 
         /// <summary>
@@ -82,27 +81,48 @@ namespace VRiscuit.Rule {
         private void DescentMethod(IVRiscuitObjectSet currentTable, IVRiscuitObjectSet beforeTable, IVRiscuitObjectSet afterRuleTable, IVRiscuitObjectSet beforeRuleTable) {
             var limit = 100;
             var beforeScore = 0.0f;
+            var alpha = 1.0f;
             var beforec = new VRiscuitObjectSet(beforeRuleTable);
             var currentc = new VRiscuitObjectSet(currentTable);
+            float[] parameters = currentc.ToParameters();
+            Func<float[], float> func = delegate (float[] param) {
+                (currentc as IVRiscuitObjectSet).SetParameter(param);
+                return RuleManager.Instance.CalcAppliedFieldScore(currentc, beforec, afterRuleTable, beforeRuleTable);
+            };
             var f = 0.05; // scoreの変動がこの値以下になったら終わり
             for(int i = 0; i < limit; i++) {
-                var score = RuleManager.Instance.CalcAppliedFieldScore(currentc, beforec, beforeRuleTable, afterRuleTable);
-                if(beforeScore - score <= f) {
-                    // Implement
+                // 
+                var score = func(parameters);
+                if(Mathf.Abs(beforeScore - score) <= f || i != 0) {
+                    // 終了
+                    currentTable.SetParameter(parameters);
+                    return;
                 }
                 beforeScore = score;
                 // Implement
+                var delta = Differential(func, parameters);
+                for(int j = 0; j < parameters.Length; j++) {
+                    parameters[j] += delta[j] * alpha;
+                }
             }
         }
 
         /// <summary>
-        /// beforeとafterで同じオブジェクト同士を対応づけるリストの作成
-        /// MovedObjectPairsとCreatedObjectsの初期化
+        /// 配列の各変数で偏微分した配列を返す
         /// </summary>
-        private void MakeCorrespondList() {
-            // Implement
-            MovedObjectPairs = new List<IndexPair>();
-            
+        /// <param name="func"></param>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
+        private float[] Differential(Func<float[], float> func, float[] parameters) {
+            var ret = new float[parameters.Length];
+            var h = 0.1f;
+            var current = func(parameters);
+            for(int i = 0; i < parameters.Length; i++) {
+                parameters[i] += h;
+                ret[i] = (func(parameters) - current) / h;
+                parameters[i] -= h;
+            }
+            return ret;
         }
 
     }

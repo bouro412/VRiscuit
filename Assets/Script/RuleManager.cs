@@ -184,7 +184,7 @@ namespace VRiscuit {
         #endregion
         #region scoreの計算
 
-        public float CalcAppliedFieldScore(IVRiscuitObjectSet afterField, IVRiscuitObjectSet beforeField, IVRiscuitObjectSet beforeRule, IVRiscuitObjectSet afterRule) {
+        public float CalcAppliedFieldScore(IVRiscuitObjectSet afterField, IVRiscuitObjectSet beforeField, IVRiscuitObjectSet afterRule, IVRiscuitObjectSet beforeRule) {
             var score = 0.0f;
 
 
