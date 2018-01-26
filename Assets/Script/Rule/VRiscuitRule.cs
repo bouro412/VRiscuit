@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using VRiscuit.Interface;
-using VRiscuit.Rule.Change;
 using UnityEngine;
 
 namespace VRiscuit.Rule {
@@ -30,11 +29,6 @@ namespace VRiscuit.Rule {
         private IVRiscuitObjectSet _beforeObjectSet;
 
         private IVRiscuitObjectSet _afterObjectSet;
-
-        /// <summary>
-        /// このルールによる変化の一覧
-        /// </summary>
-        private IChange[] _changes;
 
         private class IndexPair {
             public int Before;
@@ -66,7 +60,6 @@ namespace VRiscuit.Rule {
             BeforePattern = before;
             AfterPattern = after;
             _beforeObjectSet = BeforePattern.VRiscuitObjects;
-            _changes = after.Changes;
             MakeCorrespondList();
         }
 
@@ -76,10 +69,7 @@ namespace VRiscuit.Rule {
         /// <param name="objectsTable"></param>
         void IRule.Apply(IVRiscuitObjectSet objectsTable) {
             var beforeTable = new VRiscuitObjectSet(objectsTable);
-            foreach(var change in _changes) {
-                change.UpdateObject(objectsTable, OffSet.Zero);
-            }
-            DescentMethod(objectsTable,beforeTable, _beforeObjectSet, _afterObjectSet, _changes.Where(c => c is IDescentable).Select(c => c as IDescentable).ToArray());
+            DescentMethod(objectsTable,beforeTable, _beforeObjectSet, _afterObjectSet);
         }
 
         /// <summary>
@@ -89,7 +79,7 @@ namespace VRiscuit.Rule {
         /// <param name="beforeRuleTable"></param>
         /// <param name="afterRuleTable"></param>
         /// <param name="changes"></param>
-        private void DescentMethod(IVRiscuitObjectSet currentTable, IVRiscuitObjectSet beforeTable, IVRiscuitObjectSet afterRuleTable, IVRiscuitObjectSet beforeRuleTable,  IDescentable[] changes) {
+        private void DescentMethod(IVRiscuitObjectSet currentTable, IVRiscuitObjectSet beforeTable, IVRiscuitObjectSet afterRuleTable, IVRiscuitObjectSet beforeRuleTable) {
             var limit = 100;
             var beforeScore = 0.0f;
             var beforec = new VRiscuitObjectSet(beforeRuleTable);
@@ -112,26 +102,7 @@ namespace VRiscuit.Rule {
         private void MakeCorrespondList() {
             // Implement
             MovedObjectPairs = new List<IndexPair>();
-            for(int i = 0; i < _changes.Length; i++) {
-                if(_changes[i] is Move) {
-                    MovedObjectPairs.Add(new IndexPair(i, i));
-                }else if(_changes[i] is Generate) {
-                    // i以上のafter indexを全て+1
-                    foreach(var pair in MovedObjectPairs) {
-                        if(pair.After > i) {
-                            pair.After++;
-                        }
-                    }
-
-                }else if (_changes[i] is Delete) {
-                    // i以上のafter indexを全て-1
-                    foreach (var pair in MovedObjectPairs) {
-                        if (pair.After > i) {
-                            pair.After--;
-                        }
-                    }
-                }
-            }
+            
         }
 
     }

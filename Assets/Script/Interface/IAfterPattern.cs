@@ -5,7 +5,6 @@ using System.Text;
 
 namespace VRiscuit.Interface {
     interface IAfterPattern {
-        IChange[] Changes { get; }
         /// <summary>
         /// ルール適用後のオブジェクト
         /// 原理的には対応するbeforeオブジェクトにchangesを適用したものと同じであって欲しい

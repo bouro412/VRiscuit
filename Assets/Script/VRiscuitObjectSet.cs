@@ -49,7 +49,6 @@ namespace VRiscuit {
                 lis.Add(newObject);
                 _table.Add(type, lis);
             }
-            var ret = 0;
             var ary = (this as IVRiscuitObjectSet).ObjectArray;
             for(int i = 0;i < ary.Length; i++) {
                 if(ary[i] == newObject) {
