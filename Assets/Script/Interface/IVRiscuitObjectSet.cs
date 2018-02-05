@@ -11,5 +11,7 @@ namespace VRiscuit.Interface {
         void Delete(int index);
         List<IVRiscuitObject> GetByType(string type);
         void SetParameter(float[] parameter);
+        int Size { get; }
+        IVRiscuitObject this[int i] { get; set; }
     }
 }

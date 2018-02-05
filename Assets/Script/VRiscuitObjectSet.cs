@@ -93,6 +93,14 @@ namespace VRiscuit {
             }
         }
 
+        /// <summary>
+        /// 入っているオブジェクトの数
+        /// </summary>
+        int IVRiscuitObjectSet.Size { get { return (this as IVRiscuitObjectSet).ObjectArray.Length; } }
+
+        IVRiscuitObject IVRiscuitObjectSet.this[int i] { get { return (this as IVRiscuitObjectSet).ObjectArray[i]; }
+                                                         set { (this as IVRiscuitObjectSet).ObjectArray[i] = value; } }
+
         #endregion
         /// <summary>
         /// オブジェクトの配列から生成

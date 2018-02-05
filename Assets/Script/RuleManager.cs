@@ -184,14 +184,17 @@ namespace VRiscuit {
         #endregion
         #region scoreの計算
 
-        public float CalcAppliedFieldScore(IVRiscuitObjectSet afterField, IVRiscuitObjectSet beforeField, IVRiscuitObjectSet afterRule, IVRiscuitObjectSet beforeRule) {
+        public float CalcAppliedFieldScore(IVRiscuitObjectSet afterField, IVRiscuitObjectSet beforeField, IVRiscuitObjectSet afterRuleSet, IVRiscuitObjectSet beforeRuleSet) {
             var score = 0.0f;
-
-
-            // beforeとafterでオブジェクト数が違う
-            // 
+            for(int a = 0; a < afterField.Size; a++) {
+                for (int b = 0; b < beforeField.Size; b++) {
+                    score += CalcTwoObjectSimilarity(beforeRuleSet[b], afterRuleSet[a], beforeField[b], afterField[a], new ScoreCoefficient());
+                }
+            }
+            score += CalcScore(afterRuleSet, afterField, new ScoreCoefficient());
             return score;
         }
+
         /// <summary>
         /// Rule上のオブジェクトとフィールドのオブジェクトがどれだけ近い関係にあるかを計算
         /// </summary>
