@@ -7,7 +7,7 @@ using VRiscuit.Interface;
 using VRiscuit.Rule;
 
 namespace VRiscuit {
-    class RuleManager : MonoBehaviour {
+    public class RuleManager : MonoBehaviour {
         // シングルトン
         public static RuleManager Instance { get; private set; }
 
@@ -23,6 +23,12 @@ namespace VRiscuit {
         /// 現在のオブジェクトのテーブル
         /// </summary>
         private IVRiscuitObjectSet CurrentObjectSet;
+
+        [SerializeField]
+        private GameObject _objectParent;
+
+        [SerializeField]
+        private GameObject _ruleParent;
 
         #region 公開している汎用関数
 
@@ -70,6 +76,20 @@ namespace VRiscuit {
             Instance = this;
             VRiscuitPrefavTable = new Dictionary<string, GameObject>();
             CurrentObjectSet = new VRiscuitObjectSet();
+            if (_objectParent != null) {
+                foreach (Transform obj in _objectParent.transform) {
+                    var vobj = obj.GetComponent<IVRiscuitObject>();
+                    if (vobj == null) continue;
+                    CurrentObjectSet.Add(vobj);
+                }
+            }
+            if (_ruleParent != null) {
+                foreach (Transform obj in _ruleParent.transform) {
+                    var rule = obj.GetComponent<IRule>();
+                    if (rule == null) continue;
+                    _rules.Add(rule);
+                }
+            }
         }
 
         /// <summary>
@@ -217,7 +237,7 @@ namespace VRiscuit {
         }
 
         public class ScoreCoefficient {
-            public float c0;
+            public float  c0;
             public float c1;
             public float c2;
             public float c3;
@@ -265,6 +285,27 @@ namespace VRiscuit {
 
         private float eps(IVRiscuitObject a, IVRiscuitObject b, IVRiscuitObject x, IVRiscuitObject y, ScoreCoefficient ef) {
             return (float)(1 - Math.Exp(-ef.c5 / Math.Pow(norm(a, b) + norm(x, y) + ef.c6, 2)));
+        }
+
+        #endregion
+        #region テスト用関数
+        protected void AddRule(IVRiscuitObject[] before, IVRiscuitObject[] after)
+        {
+            var beforeSet = new VRiscuitObjectSet(before);
+            Debug.Log(beforeSet != null);
+            var rule = new VRiscuitRule(new BeforePattern(new VRiscuitObjectSet(before)),
+                                        new AfterPattern(new VRiscuitObjectSet(after)));
+            Debug.Log(rule);
+            _rules.Add(rule);
+        }
+
+        protected IVRiscuitObject TestObject(float positionX, float positionY, float positionZ, 
+                                             float angleX, float angleY, float angleZ, 
+                                             string type)
+        {
+            return new CalculateObject(new Vector3(positionX, positionY, positionZ), 
+                                       Quaternion.Euler(angleX, angleY, angleZ), 
+                                       type);
         }
 
         #endregion

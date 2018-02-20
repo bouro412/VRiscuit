@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 
 namespace VRiscuit.Interface {
-    interface IRule {
+    public interface IRule {
         /// <summary>
         /// マッチ条件となるオブジェクトのテーブル
         /// </summary>

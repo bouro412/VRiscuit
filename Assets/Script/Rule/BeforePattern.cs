@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using VRiscuit.Interface;
 
-namespace VRiscuit.Script.Rule {
+namespace VRiscuit.Rule {
     class BeforePattern : IBeforePattern {
         IVRiscuitObjectSet IBeforePattern.VRiscuitObjects
         {

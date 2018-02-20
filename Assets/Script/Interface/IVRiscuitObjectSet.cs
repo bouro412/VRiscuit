@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 
 namespace VRiscuit.Interface {
-    interface IVRiscuitObjectSet : IEnumerable<IVRiscuitObject>{
+    public interface IVRiscuitObjectSet : IEnumerable<IVRiscuitObject>{
         IVRiscuitObject[] ObjectArray { get; }
         Dictionary<string, List<IVRiscuitObject>> TypeTable { get; }
         int Add(IVRiscuitObject newObject);

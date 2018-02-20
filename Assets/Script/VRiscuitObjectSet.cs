@@ -107,9 +107,9 @@ namespace VRiscuit {
         /// </summary>
         /// <param name="array"></param>
         public VRiscuitObjectSet(IVRiscuitObject[] array) {
-            var _table = new Dictionary<string, List<IVRiscuitObject>>();
+            _table = new Dictionary<string, List<IVRiscuitObject>>();
             foreach (var obj in array) {
-                if (_table.ContainsKey(obj.Type)) {
+               if (_table.ContainsKey(obj.Type)) {
                     _table[obj.Type].Add(obj);
                 } else {
                     var l = new List<IVRiscuitObject>();

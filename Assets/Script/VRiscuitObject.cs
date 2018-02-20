@@ -44,5 +44,11 @@ namespace VRiscuit {
         void Move(Vector3 vector) {
             transform.Translate(vector);
         }
+
+        public VRiscuitObject(Vector3 position, Quaternion angle, string type) {
+            transform.position = position;
+            transform.rotation = angle;
+            _objectType = type;
+        }
     }
 }

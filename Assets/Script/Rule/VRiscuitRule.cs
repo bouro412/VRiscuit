@@ -20,7 +20,7 @@ namespace VRiscuit.Rule {
         {
             get
             {
-                return _beforeObjectSet;
+                return BeforePattern.VRiscuitObjects;
             }
         }
         /// <summary>
@@ -62,6 +62,10 @@ namespace VRiscuit.Rule {
             _beforeObjectSet = BeforePattern.VRiscuitObjects;
         }
 
+        public VRiscuitRule() {
+
+        }
+
         /// <summary>
         /// ルールの適用
         /// </summary>
@@ -99,7 +103,6 @@ namespace VRiscuit.Rule {
                     return;
                 }
                 beforeScore = score;
-                // Implement
                 var delta = Differential(func, parameters);
                 for(int j = 0; j < parameters.Length; j++) {
                     parameters[j] += delta[j] * alpha;
