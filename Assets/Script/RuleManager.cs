@@ -7,10 +7,7 @@ using VRiscuit.Interface;
 using VRiscuit.Rule;
 
 namespace VRiscuit {
-    public class RuleManager : MonoBehaviour {
-        // シングルトン
-        public static RuleManager Instance { get; private set; }
-
+    public class RuleManager {
 
         private List<IRule> _rules = new List<IRule>();
 
@@ -24,12 +21,6 @@ namespace VRiscuit {
         /// </summary>
         private IVRiscuitObjectSet CurrentObjectSet;
 
-        [SerializeField]
-        private GameObject _objectParent;
-
-        [SerializeField]
-        private GameObject _ruleParent;
-
         #region 公開している汎用関数
 
         /// <summary>
@@ -40,19 +31,7 @@ namespace VRiscuit {
         /// <param name="angle"></param>
         /// <returns></returns>
         public IVRiscuitObject GenerateObject(string objectName, Vector3 position, Quaternion angle) {
-            var obj = Instantiate(VRiscuitPrefavTable[objectName],
-                                                   position,
-                                                   angle,
-                                                   transform);
-            if (obj == null) {
-                Debug.LogError(objectName + "の生成に失敗");
-                return null;
-            }
-            var vobj = obj.GetComponent<IVRiscuitObject>();
-            if (vobj == null) {
-                Debug.LogError(objectName + "はVRiscuitObjectではありません");
-                return null;
-            }
+            var vobj = new CalculateObject(position, angle, objectName);
             CurrentObjectSet.GetByType(objectName).Add(vobj);
             return vobj;
         }
@@ -68,44 +47,19 @@ namespace VRiscuit {
 
         #endregion
 
-        #region Unity Event
-        /// <summary>
-        /// 初期化。シングルトンと必要なテーブルの用意
-        /// </summary>
-        private void Awake() {
-            Instance = this;
+        public RuleManager(IVRiscuitObjectSet objects, IEnumerable<IRule> rules) {
             VRiscuitPrefavTable = new Dictionary<string, GameObject>();
-            CurrentObjectSet = new VRiscuitObjectSet();
-            if (_objectParent != null) {
-                foreach (Transform obj in _objectParent.transform) {
-                    var vobj = obj.GetComponent<IVRiscuitObject>();
-                    if (vobj == null) continue;
-                    CurrentObjectSet.Add(vobj);
-                }
-            }
-            if (_ruleParent != null) {
-                foreach (Transform obj in _ruleParent.transform) {
-                    var rule = obj.GetComponent<IRule>();
-                    if (rule == null) continue;
-                    _rules.Add(rule);
-                }
-            }
+            CurrentObjectSet = objects;
+            _rules = rules.ToList();
         }
 
-        /// <summary>
-        /// 毎フレームルールの適用 
-        /// </summary>
-        private void Update() {
-            ApplyRule();
-        }
-        #endregion
 
         #region ルール適用周り
 
         /// <summary>
         /// 定義されたルールをゲーム世界に適用、変更する
         /// </summary>
-        private void ApplyRule() {
+        public void ApplyRule() {
             // Candidateの取得
             var cands = GetApplyCandidates();
             // Score順にソート
@@ -135,17 +89,18 @@ namespace VRiscuit {
                     return new KeyValuePair<string, List<List<IVRiscuitObject>>>(kvp.Key, candInThisType.ToList());
                 }).ToList();
                 if (canMakeCandidate == false) break;
-                var lis = Choice(typesAndObjs.Select(i => i.Value).ToList()).Select(flatten);
+                var lis = Choice(typesAndObjs.Select(i => i.Value).ToList()).Select(Flatten);
                 foreach(var objlist in lis) {
                     var objset = new VRiscuitObjectSet(objlist);
-                    var cand = new Candidate(rule, objset);
+                    var score = CalcScore(rule.BeforeObjectSet, objset, new ScoreCoefficient());
+                    var cand = new Candidate(rule, objset, score);
                     result.Add(cand);
                 }
             }
             return result.ToArray();
         }
 
-        private List<T> flatten<T>(List<List<T>> lislis) {
+        private List<T> Flatten<T>(List<List<T>> lislis) {
             return lislis.SelectMany(i => i).ToList();
         }
 
@@ -164,8 +119,10 @@ namespace VRiscuit {
             var tail = objlist.Skip(0).ToList();
             foreach(var t in head) {
                 foreach(var restChoice in Choice(tail)) {
-                    var ret = new List<T>(restChoice);
-                    ret.Add(t);
+                    var ret = new List<T>(restChoice)
+                    {
+                        t
+                    };
                     yield return ret;
                 }
             }
@@ -178,8 +135,10 @@ namespace VRiscuit {
                 for (int i = 0; i < lis.Count(); i++) {
                     var item = lis.ElementAt(i);
                     foreach (var perm in Permutation<T>(lis.Skip(i), length - 1)) {
-                        var p = new List<T>(perm);
-                        p.Add(item);
+                        var p = new List<T>(perm)
+                        {
+                            item
+                        };
                         yield return p;
                     }
                 }
@@ -204,7 +163,7 @@ namespace VRiscuit {
         #endregion
         #region scoreの計算
 
-        public float CalcAppliedFieldScore(IVRiscuitObjectSet afterField, IVRiscuitObjectSet beforeField, IVRiscuitObjectSet afterRuleSet, IVRiscuitObjectSet beforeRuleSet) {
+        public static float CalcAppliedFieldScore(IVRiscuitObjectSet afterField, IVRiscuitObjectSet beforeField, IVRiscuitObjectSet afterRuleSet, IVRiscuitObjectSet beforeRuleSet) {
             var score = 0.0f;
             for(int a = 0; a < afterField.Size; a++) {
                 for (int b = 0; b < beforeField.Size; b++) {
@@ -222,7 +181,7 @@ namespace VRiscuit {
         /// <param name="fieldObjectSet"></param>
         /// <param name="ef"></param>
         /// <returns></returns>
-        public float CalcScore(IVRiscuitObjectSet ruleObjectSet, IVRiscuitObjectSet fieldObjectSet, ScoreCoefficient ef) {
+        private static float CalcScore(IVRiscuitObjectSet ruleObjectSet, IVRiscuitObjectSet fieldObjectSet, ScoreCoefficient ef) {
             var score = 0.0f;
             var ruleObjectList = ruleObjectSet.ObjectArray;
             var fieldObjectList = fieldObjectSet.ObjectArray;
@@ -251,12 +210,12 @@ namespace VRiscuit {
             public float w4;
         }
 
-        public float CalcTwoObjectSimilarity(IVRiscuitObject a, IVRiscuitObject b, IVRiscuitObject x, IVRiscuitObject y, ScoreCoefficient ef) {
+        private static float CalcTwoObjectSimilarity(IVRiscuitObject a, IVRiscuitObject b, IVRiscuitObject x, IVRiscuitObject y, ScoreCoefficient ef) {
             var score = 0.0f;
-            score += ef.c0 * delta(norm(a, b), norm(x, y), ef.w0);
-            score += ef.c1 * eps(a, b, x, y, ef) * delta(rdir(a, b), rdir(x, y), ef.w1);
-            score += ef.c2 * eps(a, b, x, y, ef) * delta(rdir(b, a), rdir(y, x), ef.w2);
-            score += ef.c3 * delta(angle(a, b), angle(x, y), ef.w3);
+            score += ef.c0 * Delta(Norm(a, b), Norm(x, y), ef.w0);
+            score += ef.c1 * Eps(a, b, x, y, ef) * Delta(Rdir(a, b), Rdir(x, y), ef.w1);
+            score += ef.c2 * Eps(a, b, x, y, ef) * Delta(Rdir(b, a), Rdir(y, x), ef.w2);
+            score += ef.c3 * Delta(Angle(a, b), Angle(x, y), ef.w3);
             return score;
         }
 
@@ -267,24 +226,24 @@ namespace VRiscuit {
         /// <param name="y"></param>
         /// <param name="weight"></param>
         /// <returns></returns>
-        private float delta(float x, float y, float weight) {
+        private static float Delta(float x, float y, float weight) {
             return (float)Math.Exp(-(Math.Pow(x - y, 2) / weight));
         }
 
-        private float norm(IVRiscuitObject x, IVRiscuitObject y) {
+        private static float Norm(IVRiscuitObject x, IVRiscuitObject y) {
             return (x.Position - y.Position).magnitude;
         }
 
-        private float rdir(IVRiscuitObject x, IVRiscuitObject y) {
+        private static float Rdir(IVRiscuitObject x, IVRiscuitObject y) {
             return Quaternion.Angle(x.Rotation, Quaternion.FromToRotation(x.Position, y.Position));
         }
 
-        private float angle(IVRiscuitObject x, IVRiscuitObject y) {
+        private static float Angle(IVRiscuitObject x, IVRiscuitObject y) {
             return Quaternion.Angle(x.Rotation, y.Rotation);
         }
 
-        private float eps(IVRiscuitObject a, IVRiscuitObject b, IVRiscuitObject x, IVRiscuitObject y, ScoreCoefficient ef) {
-            return (float)(1 - Math.Exp(-ef.c5 / Math.Pow(norm(a, b) + norm(x, y) + ef.c6, 2)));
+        private static float Eps(IVRiscuitObject a, IVRiscuitObject b, IVRiscuitObject x, IVRiscuitObject y, ScoreCoefficient ef) {
+            return (float)(1 - Math.Exp(-ef.c5 / Math.Pow(Norm(a, b) + Norm(x, y) + ef.c6, 2)));
         }
 
         #endregion

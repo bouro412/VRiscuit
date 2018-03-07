@@ -91,7 +91,7 @@ namespace VRiscuit.Rule {
             float[] parameters = currentc.ToParameters();
             Func<float[], float> func = delegate (float[] param) {
                 (currentc as IVRiscuitObjectSet).SetParameter(param);
-                return RuleManager.Instance.CalcAppliedFieldScore(currentc, beforec, afterRuleTable, beforeRuleTable);
+                return RuleManager.CalcAppliedFieldScore(currentc, beforec, afterRuleTable, beforeRuleTable);
             };
             var f = 0.05; // scoreの変動がこの値以下になったら終わり
             for(int i = 0; i < limit; i++) {

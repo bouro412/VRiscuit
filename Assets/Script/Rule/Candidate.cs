@@ -10,17 +10,13 @@ namespace VRiscuit.Rule {
     class Candidate {
         private IRule _rule;
         private IVRiscuitObjectSet _table;
-        private RuleManager.ScoreCoefficient _scoreCoefficient;
         public float Score { get; private set; }
 
-        public Candidate (IRule rule, IVRiscuitObjectSet table){
+        public Candidate (IRule rule, IVRiscuitObjectSet table, float score){
             _rule = rule;
             _table = table;
-            _scoreCoefficient = new RuleManager.ScoreCoefficient();
-            Score = RuleManager.Instance.CalcScore(_rule.BeforeObjectSet, _table, _scoreCoefficient);
+            Score = score;
         }
-
-        
 
         public void RuleApply() {
             _rule.Apply(_table);

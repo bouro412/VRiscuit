@@ -46,8 +46,9 @@ public class SimpleTest {
         /// </summary>
         private void Start()
         {
-            AddRule(new IVRiscuitObject[] { new CalculateObject(new Vector3(0, 0, 0), Quaternion.Euler(0, 0, 0), "Cube") },
-                    new IVRiscuitObject[] { new CalculateObject(new Vector3(0.1f, 0, 0), Quaternion.Euler(0, 0, 0), "Cube") });
+            //AddRule(new IVRiscuitObject[] { TestObject(0, 0, 0, 0, 0, 0, "Cube") },
+            //      new IVRiscuitObject[] { TestObject(0.1f, 0, 0, 0, 0, 0, "Cube") });
+            var game = new GameObject();
         }
 
     }
