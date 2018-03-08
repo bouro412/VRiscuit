@@ -26,30 +26,4 @@ public class SimpleTest {
 		yield return null;
 	}
 
-    [UnityTest]
-    public IEnumerator ManagerTestWorks()
-    {
-        yield return new MonoBehaviourTest<RuleManagerTest>();
-    }
-
-    public class RuleManagerTest : RuleManager, IMonoBehaviourTest
-    {
-        bool IMonoBehaviourTest.IsTestFinished
-        {
-            get
-            {
-                throw new System.NotImplementedException();
-            }
-        }
-        /// <summary>
-        /// テスト用の初期化
-        /// </summary>
-        private void Start()
-        {
-            //AddRule(new IVRiscuitObject[] { TestObject(0, 0, 0, 0, 0, 0, "Cube") },
-            //      new IVRiscuitObject[] { TestObject(0.1f, 0, 0, 0, 0, 0, "Cube") });
-            var game = new GameObject();
-        }
-
-    }
 }
