@@ -9,7 +9,7 @@ namespace VRiscuit.Rule {
     /// <summary>
     /// 数値計算用オブジェクト。必要な値のみ保持しUnityオブジェクトには影響を与えない
     /// </summary>
-    internal class CalculateObject : IVRiscuitObject {
+    public class CalculateObject : IVRiscuitObject {
         Vector3 _position;
         Vector3 IVRiscuitObject.Position
         {

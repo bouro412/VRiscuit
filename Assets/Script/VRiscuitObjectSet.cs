@@ -11,7 +11,7 @@ namespace VRiscuit {
     /// <summary>
     /// VRiscuit Objectの集合を表す
     /// </summary>
-    class VRiscuitObjectSet : IVRiscuitObjectSet {
+    public class VRiscuitObjectSet : IVRiscuitObjectSet {
         #region IVRiscuitObjectSet Interface
         /// <summary>
         /// オブジェクトのタイプごとにまとめたテーブル。
@@ -45,8 +45,10 @@ namespace VRiscuit {
             if (_table.ContainsKey(type)) {
                 _table[type].Add(newObject);
             } else {
-                var lis = new List<IVRiscuitObject>();
-                lis.Add(newObject);
+                var lis = new List<IVRiscuitObject>
+                {
+                    newObject
+                };
                 _table.Add(type, lis);
             }
             var ary = (this as IVRiscuitObjectSet).ObjectArray;
@@ -112,8 +114,10 @@ namespace VRiscuit {
                if (_table.ContainsKey(obj.Type)) {
                     _table[obj.Type].Add(obj);
                 } else {
-                    var l = new List<IVRiscuitObject>();
-                    l.Add(obj);
+                    var l = new List<IVRiscuitObject>
+                    {
+                        obj
+                    };
                     _table.Add(obj.Type, l);
                 }
             }
@@ -124,13 +128,15 @@ namespace VRiscuit {
         /// </summary>
         /// <param name="list"></param>
         public VRiscuitObjectSet(List<IVRiscuitObject> list) {
-            var _table = new Dictionary<string, List<IVRiscuitObject>>();
+            _table = new Dictionary<string, List<IVRiscuitObject>>();
             foreach (var obj in list) {
                 if (_table.ContainsKey(obj.Type)) {
                     _table[obj.Type].Add(obj);
                 } else {
-                    var l = new List<IVRiscuitObject>();
-                    l.Add(obj);
+                    var l = new List<IVRiscuitObject>
+                    {
+                        obj
+                    };
                     _table.Add(obj.Type, l);
                 }
             }
@@ -141,7 +147,7 @@ namespace VRiscuit {
         /// </summary>
         /// <param name="table"></param>
         public VRiscuitObjectSet(Dictionary<string, List<IVRiscuitObject>> table) {
-            _table = table;
+            _table = table ?? new Dictionary<string, List<IVRiscuitObject>>();
         }
 
         /// <summary>

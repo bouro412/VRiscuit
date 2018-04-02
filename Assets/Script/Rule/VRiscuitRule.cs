@@ -9,7 +9,7 @@ namespace VRiscuit.Rule {
     /// <summary>
     /// VRiscuit中の一般的なルールを表す
     /// </summary>
-    class VRiscuitRule : IRule {
+    public class VRiscuitRule : IRule {
         public IBeforePattern BeforePattern { get; private set; }
         public IAfterPattern AfterPattern { get; private set; }
         
@@ -40,19 +40,6 @@ namespace VRiscuit.Rule {
         }
 
         /// <summary>
-        /// ルール適用で移動したオブジェクトのリスト
-        /// beforeとafterそれぞれのオブジェクトセット中のインデックスで表す
-        /// 同じオブジェクトは一つのpairの中にある
-        /// </summary>
-        private List<IndexPair> MovedObjectPairs;
-
-        /// <summary>
-        /// 新たに作られたオブジェクトのリスト
-        /// after object setのインデックスで表されている
-        /// </summary>
-        private List<int> CreatedObjects;
-
-        /// <summary>
         /// </summary>
         /// <param name="before"></param>
         /// <param name="after"></param>
@@ -60,10 +47,11 @@ namespace VRiscuit.Rule {
             BeforePattern = before;
             AfterPattern = after;
             _beforeObjectSet = BeforePattern.VRiscuitObjects;
+            _afterObjectSet = AfterPattern.ResultObjectSet;
         }
 
         public VRiscuitRule() {
-
+            
         }
 
         /// <summary>

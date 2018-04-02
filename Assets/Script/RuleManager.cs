@@ -19,7 +19,7 @@ namespace VRiscuit {
         /// <summary>
         /// 現在のオブジェクトのテーブル
         /// </summary>
-        private IVRiscuitObjectSet CurrentObjectSet;
+        public IVRiscuitObjectSet CurrentObjectSet;
 
         #region 公開している汎用関数
 
@@ -112,18 +112,26 @@ namespace VRiscuit {
         /// <param name="length"></param>
         /// <returns></returns>
         private IEnumerable<List<T>> Choice<T>(List<List<T>> objlist) {
-            if(objlist.Count() == 0) {
+            if(!objlist.Any()) {
                 yield break;
             }
-            var head = objlist[0];
-            var tail = objlist.Skip(0).ToList();
-            foreach(var t in head) {
-                foreach(var restChoice in Choice(tail)) {
-                    var ret = new List<T>(restChoice)
+            if(objlist.Count() == 1)
+            {
+                yield return objlist.First();
+            }
+            else { 
+                var head = objlist[0];
+                var tail = objlist.Skip(0).ToList();
+                foreach (var t in head)
+                {
+                    foreach (var restChoice in Choice(tail))
+                    {
+                        var ret = new List<T>(restChoice)
                     {
                         t
                     };
-                    yield return ret;
+                        yield return ret;
+                    }
                 }
             }
         }
@@ -196,18 +204,18 @@ namespace VRiscuit {
         }
 
         public class ScoreCoefficient {
-            public float  c0;
-            public float c1;
-            public float c2;
-            public float c3;
-            public float c4;
-            public float c5;
-            public float c6;
-            public float w0;
-            public float w1;
-            public float w2;
-            public float w3;
-            public float w4;
+            public float c0 = 1;
+            public float c1 = 1;
+            public float c2 = 1;
+            public float c3 = 1;
+            public float c4 = 1;
+            public float c5 = 1;
+            public float c6 = 1;
+            public float w0 = 1;
+            public float w1 = 1;
+            public float w2 = 1;
+            public float w3 = 1;
+            public float w4 = 1;
         }
 
         private static float CalcTwoObjectSimilarity(IVRiscuitObject a, IVRiscuitObject b, IVRiscuitObject x, IVRiscuitObject y, ScoreCoefficient ef) {

@@ -5,7 +5,7 @@ using System.Text;
 using VRiscuit.Interface;
 
 namespace VRiscuit.Rule {
-    class AfterPattern : IAfterPattern {
+    public class AfterPattern : IAfterPattern {
         private IVRiscuitObjectSet _objects;
         IVRiscuitObjectSet IAfterPattern.ResultObjectSet { get { return _objects; } }
 

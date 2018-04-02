@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace VRiscuit.Interface {
-    interface IBeforePattern {
+    public interface IBeforePattern {
         IVRiscuitObjectSet VRiscuitObjects { get; }
     }
 }
