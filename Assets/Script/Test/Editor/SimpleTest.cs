@@ -33,10 +33,7 @@ namespace VRiscuit.Test {
             };
             var objs = new VRiscuitObjectSet(new IVRiscuitObject[] { new CalculateObject(new Vector3(0, 0, 0), Quaternion.identity, "Cube") });
             var manager = new RuleManager(objs, rules);
-            for(int i = 0; i < 5; i++)
-            {
-                manager.ApplyRule();
-            }
+            ApplyInSec(() => manager.ApplyRule());
             var obj = manager.CurrentObjectSet;
             Assert.AreEqual(obj.Size, 1);
             Assert.AreEqual(obj.First().Type, "Cube");
@@ -79,11 +76,11 @@ namespace VRiscuit.Test {
             ApplyInSec(() => {
                 manager.ApplyRule();
                 Debug.Log(string.Format("{0}: pos = {1}, rot = {2}", i++, objs.First().Position, objs.First().Rotation));
-            }, 1.0f);
+            });
             Assert.AreEqual(1, 1);
         }
 
-        private void ApplyInSec(Action func, float sec)
+        private void ApplyInSec(Action func, float sec = 1.0f)
         {
             var sum = 0.0f;
             while(sum < sec)
