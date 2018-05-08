@@ -31,7 +31,10 @@ namespace VRiscuit.Test {
             };
             var objs = new VRiscuitObjectSet(new IVRiscuitObject[] { new CalculateObject(new Vector3(0, 0, 0), Quaternion.identity, "Cube") });
             var manager = new RuleManager(objs, rules);
-            manager.ApplyRule();
+            for(int i = 0; i < 5; i++)
+            {
+                manager.ApplyRule();
+            }
             var obj = manager.CurrentObjectSet;
             Assert.AreEqual(obj.Size, 1);
             Assert.AreEqual(obj.First().Type, "Cube");
@@ -43,7 +46,7 @@ namespace VRiscuit.Test {
             Debug.Log(pos.y);
             Assert.That(pos.x, Is.InRange(-0.1f, 0.1f));
             Assert.That(pos.y, Is.InRange(-0.1f, 0.1f));
-            Assert.That(pos.z, Is.InRange(0.9f, 1.1f));
+            Assert.That(pos.z, Is.GreaterThan(1.0f));
             Assert.That(rot.x, Is.InRange(-0.1f, 0.1f));
             Assert.That(rot.y, Is.InRange(-0.1f, 0.1f));
             Assert.That(rot.z, Is.InRange(-0.1f, 0.1f));

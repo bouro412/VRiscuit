@@ -107,7 +107,17 @@ namespace VRiscuit.Rule {
                 //Debug.Log("parameter = " + parameters.Skip(1).Aggregate(parameters[0].ToString(), (acc, next) => acc + ", " + next.ToString()));
                 alpha *= 0.95f;
             }
+            var beforeParam = beforec.ToParameters();
+            var d = new float[beforeParam.Length];
+            for(int i = 0; i < beforeParam.Length; i++)
+            {
+                var di = parameters[i] - beforeParam[i];
+                // 細かい部分を四捨五入, 秒間スピードに変更
+                di = ((float)Math.Round(di, 1)) * Time.deltaTime;
+                parameters[i] = beforeParam[i] + di;
+            }
             currentTable.SetParameter(parameters);
+            Debug.Log(Time.deltaTime);
         }   
 
         /// <summary>
@@ -127,6 +137,5 @@ namespace VRiscuit.Rule {
             }
             return ret;
         }
-
     }
 }

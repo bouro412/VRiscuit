@@ -16,7 +16,7 @@ namespace VRiscuit
 
         [SerializeField]
         private GameObject _rulesRoot;
-        
+
         #region Unity Event
         /// <summary>
         /// 初期化。シングルトンと必要なテーブルの用意
