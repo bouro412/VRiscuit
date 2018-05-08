@@ -38,9 +38,9 @@ namespace VRiscuit
             {
                 foreach (Transform obj in _rulesRoot.transform)
                 {
-                    var rule = obj.GetComponent<IRule>();
+                    var rule = obj.GetComponent<IRuleSet>();
                     if (rule == null) continue;
-                    rules.Add(rule);
+                    rules.AddRange(rule.Rules);
                 }
             }
             _manager = new RuleManager(currentObjectSet, rules);

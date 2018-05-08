@@ -39,6 +39,8 @@ namespace VRiscuit.Test {
             var pos = obj.First().Position;
             var rot = obj.First().Rotation;
             Debug.Log(pos);
+            Debug.Log(pos.x);
+            Debug.Log(pos.y);
             Assert.That(pos.x, Is.InRange(-0.1f, 0.1f));
             Assert.That(pos.y, Is.InRange(-0.1f, 0.1f));
             Assert.That(pos.z, Is.InRange(0.9f, 1.1f));

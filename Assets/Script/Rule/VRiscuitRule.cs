@@ -68,8 +68,7 @@ namespace VRiscuit.Rule {
         /// </summary>
         /// <param name="objectsTable"></param>
         void IRule.Apply(IVRiscuitObjectSet objectsTable) {
-            var beforeTable = new VRiscuitObjectSet(objectsTable);
-            DescentMethod(objectsTable,beforeTable, _afterObjectSet, _beforeObjectSet);
+            DescentMethod(objectsTable, _afterObjectSet, _beforeObjectSet);
         }
 
         /// <summary>
@@ -79,11 +78,11 @@ namespace VRiscuit.Rule {
         /// <param name="beforeRuleTable"></param>
         /// <param name="afterRuleTable"></param>
         /// <param name="changes"></param>
-        private void DescentMethod(IVRiscuitObjectSet currentTable, IVRiscuitObjectSet beforeTable, IVRiscuitObjectSet afterRuleTable, IVRiscuitObjectSet beforeRuleTable) {
+        private void DescentMethod(IVRiscuitObjectSet currentTable, IVRiscuitObjectSet afterRuleTable, IVRiscuitObjectSet beforeRuleTable) {
             var limit = 100;
             var beforeScore = 0.0f;
             var alpha = 0.01f;
-            var beforec = new VRiscuitObjectSet(beforeRuleTable);
+            var beforec = new VRiscuitObjectSet(currentTable);
             var currentc = new VRiscuitObjectSet(currentTable);
             float[] parameters = currentc.ToParameters();
             Func<float[], float> func = delegate (float[] param) {
@@ -94,21 +93,21 @@ namespace VRiscuit.Rule {
             for(int i = 0; i < limit; i++) {
                 var score = func(parameters);
                 var message = String.Format("{0}: {1}, {2}, {3} => {4} points", i, parameters[0], parameters[1], parameters[2], score);
-                Debug.Log(message);
+                //Debug.Log(message);
                 if (Mathf.Abs(beforeScore - score) <= f && i != 0) {
                     // 終了
-                    currentTable.SetParameter(parameters);
-                    return;
+                    break;
                 }
                 beforeScore = score;
                 var delta = Differential(func, parameters);
-                Debug.Log("delta = " + delta.Skip(1).Aggregate(delta[0].ToString(), (acc, next) => acc + ", " + next.ToString()));
+                //Debug.Log("delta = " + delta.Skip(1).Aggregate(delta[0].ToString(), (acc, next) => acc + ", " + next.ToString()));
                 for(int j = 0; j < parameters.Length; j++) {
                     parameters[j] += delta[j] * alpha;
                 }
-                Debug.Log("parameter = " + parameters.Skip(1).Aggregate(parameters[0].ToString(), (acc, next) => acc + ", " + next.ToString()));
+                //Debug.Log("parameter = " + parameters.Skip(1).Aggregate(parameters[0].ToString(), (acc, next) => acc + ", " + next.ToString()));
                 alpha *= 0.95f;
             }
+            currentTable.SetParameter(parameters);
         }   
 
         /// <summary>
