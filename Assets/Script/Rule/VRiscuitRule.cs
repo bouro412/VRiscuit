@@ -117,7 +117,6 @@ namespace VRiscuit.Rule {
                 parameters[i] = beforeParam[i] + di;
             }
             currentTable.SetParameter(parameters);
-            Debug.Log(Time.deltaTime);
         }   
 
         /// <summary>

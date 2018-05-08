@@ -2,8 +2,10 @@
 using UnityEditor;
 using UnityEngine.TestTools;
 using NUnit.Framework;
+using System;
 using System.Collections;
 using System.Linq;
+using System.Threading;
 using VRiscuit;
 using VRiscuit.Interface;
 using VRiscuit.Rule;
@@ -50,6 +52,58 @@ namespace VRiscuit.Test {
             Assert.That(rot.x, Is.InRange(-0.1f, 0.1f));
             Assert.That(rot.y, Is.InRange(-0.1f, 0.1f));
             Assert.That(rot.z, Is.InRange(-0.1f, 0.1f));
+        }
+
+        [Test]
+        public void CurveTest()
+        {
+            var rules = new IRule[]
+            {
+                new RuleMaker(){
+                    Before = new IVRiscuitObject[]
+                    {
+                        new CalculateObject(new Vector3(0,0,0), Quaternion.identity, "Spear")
+                    },
+                    After = new IVRiscuitObject[]
+                    {
+                        new CalculateObject(new Vector3(0,0,1), Quaternion.Euler(0, 30, 0), "Spear")
+                    }
+                }.Convert()
+            };
+            var objs = new VRiscuitObjectSet(new IVRiscuitObject[] {
+                new CalculateObject(new Vector3(0, 0, 0), Quaternion.identity, "Spear")
+            });
+            var manager = new RuleManager(objs, rules);
+            int i = 0;
+            
+            ApplyInSec(() => {
+                manager.ApplyRule();
+                Debug.Log(string.Format("{0}: pos = {1}, rot = {2}", i++, objs.First().Position, objs.First().Rotation));
+            }, 1.0f);
+            Assert.AreEqual(1, 1);
+        }
+
+        private void ApplyInSec(Action func, float sec)
+        {
+            var sum = 0.0f;
+            while(sum < sec)
+            {
+                func.Invoke();
+                sum += Time.deltaTime;   
+            }
+        }
+
+        private class RuleMaker
+        {
+            public IVRiscuitObject[] Before;
+            public IVRiscuitObject[] After;
+
+            public VRiscuitRule Convert()
+            {
+                var beforePattern = new BeforePattern(new VRiscuitObjectSet(Before));
+                var afterPattern = new AfterPattern(new VRiscuitObjectSet(Before));
+                return new VRiscuitRule(beforePattern, afterPattern);
+            }
         }
 
         [Test]

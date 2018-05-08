@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using VRiscuit;
+using UnityEditor;
 using VRiscuit.Rule;
 using VRiscuit.Interface;
 using NUnit.Framework;
@@ -89,7 +90,7 @@ namespace VRiscuit.Test
             Debug.Log(Delta(0, 100, 10000));
             Debug.Log(Vector3.Angle(Vector3.forward, new Vector3(0, 0, 0)));
             Debug.Log(Vector3.Angle(Vector3.forward, Vector3.back));
-
+            Debug.Log(EditorUserBuildSettings.activeScriptCompilationDefines.Length); //.Aggregate((s1, s2) => s1 + "\n" + s2));
         }
 
     }
