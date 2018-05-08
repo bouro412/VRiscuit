@@ -91,8 +91,17 @@ namespace VRiscuit {
             for (int i = 0; i < array.Length; i++) {
                 var obj = array[i];
                 obj.Position = new Vector3(parameter[i * 6], parameter[i * 6 + 1], parameter[i * 6 + 2]);
-                obj.Rotation = Quaternion.Euler(parameter[i * 6 + 3], parameter[i * 6 + 4], parameter[i * 6 + 5]);
+                obj.Rotation = Quaternion.Euler(euler(parameter[i * 6 + 3]), 
+                                                euler(parameter[i * 6 + 4]), 
+                                                euler(parameter[i * 6 + 5]));
             }
+        }
+
+        private float euler(float a)
+        {
+            a %= 360;
+            a = a < 0 ? a + 360 : a;
+            return a;
         }
 
         /// <summary>

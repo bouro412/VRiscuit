@@ -189,7 +189,7 @@ namespace VRiscuit {
         /// <param name="fieldObjectSet"></param>
         /// <param name="ef"></param>
         /// <returns></returns>
-        private static float CalcScore(IVRiscuitObjectSet ruleObjectSet, IVRiscuitObjectSet fieldObjectSet, ScoreCoefficient ef) {
+        public static float CalcScore(IVRiscuitObjectSet ruleObjectSet, IVRiscuitObjectSet fieldObjectSet, ScoreCoefficient ef) {
             var score = 0.0f;
             var ruleObjectList = ruleObjectSet.ObjectArray;
             var fieldObjectList = fieldObjectSet.ObjectArray;
@@ -204,27 +204,47 @@ namespace VRiscuit {
         }
 
         public class ScoreCoefficient {
-            public float c0 = 1;
-            public float c1 = 1;
-            public float c2 = 1;
-            public float c3 = 1;
+            public float c0 = 5f;
+            public float c1 = 10;
+            public float c2 = 10;
+            public float c3 = 10;
             public float c4 = 1;
-            public float c5 = 1;
+            public float c5 = 10;
             public float c6 = 1;
-            public float w0 = 1;
-            public float w1 = 1;
-            public float w2 = 1;
+            public float w0 = 10;
+            public float w1 = 10000;
+            public float w2 = 10000;
             public float w3 = 1;
             public float w4 = 1;
         }
 
-        private static float CalcTwoObjectSimilarity(IVRiscuitObject a, IVRiscuitObject b, IVRiscuitObject x, IVRiscuitObject y, ScoreCoefficient ef) {
+        public static float CalcTwoObjectSimilarity(IVRiscuitObject a, IVRiscuitObject b, IVRiscuitObject x, IVRiscuitObject y, ScoreCoefficient ef) {
             var score = 0.0f;
             score += ef.c0 * Delta(Norm(a, b), Norm(x, y), ef.w0);
-            score += ef.c1 * Eps(a, b, x, y, ef) * Delta(Rdir(a, b), Rdir(x, y), ef.w1);
-            score += ef.c2 * Eps(a, b, x, y, ef) * Delta(Rdir(b, a), Rdir(y, x), ef.w2);
+            score += ef.c1 * /* Eps(a, b, x, y, ef) */ Delta(Rdir(a, b), Rdir(x, y), ef.w1);
+            score += ef.c2 * /* Eps(a, b, x, y, ef) */ Delta(Rdir(b, a), Rdir(y, x), ef.w2);
             score += ef.c3 * Delta(Angle(a, b), Angle(x, y), ef.w3);
             return score;
+        }        
+
+        public static float CalcTwoObjectSimilarity(IVRiscuitObject a, IVRiscuitObject b, IVRiscuitObject x, IVRiscuitObject y)
+        {
+            return CalcTwoObjectSimilarity(a, b, x, y, new ScoreCoefficient());
+        }
+
+        protected static float[] CalcTwoObjectSimilarityparameters(IVRiscuitObject a, IVRiscuitObject b, IVRiscuitObject x, IVRiscuitObject y, ScoreCoefficient ef)
+        {
+            return new float[] {
+                ef.c0 * Delta(Norm(a, b), Norm(x, y), ef.w0),
+                ef.c1 * Eps(a, b, x, y, ef) * Delta(Rdir(a, b), Rdir(x, y), ef.w1),
+                ef.c2 * Eps(a, b, x, y, ef) * Delta(Rdir(b, a), Rdir(y, x), ef.w2),
+                ef.c3 * Delta(Angle(a, b), Angle(x, y), ef.w3)
+            };
+        }
+
+        protected static float[] CalcTwoObjectSimilarityparameters(IVRiscuitObject a, IVRiscuitObject b, IVRiscuitObject x, IVRiscuitObject y)
+        {
+            return CalcTwoObjectSimilarityparameters(a, b, x, y, new ScoreCoefficient());
         }
 
         /// <summary>
@@ -234,24 +254,55 @@ namespace VRiscuit {
         /// <param name="y"></param>
         /// <param name="weight"></param>
         /// <returns></returns>
-        private static float Delta(float x, float y, float weight) {
-            return (float)Math.Exp(-(Math.Pow(x - y, 2) / weight));
+        protected static float Delta(float x, float y, float weight) {
+            var result = (float)Math.Exp(-(Math.Pow(x - y, 2) / weight));
+#if UNITY_EDITOR
+            // Debug.Log(String.Format("Delta({0}, {1}) = {2}", x, y, result));
+#endif
+            return result;
         }
 
-        private static float Norm(IVRiscuitObject x, IVRiscuitObject y) {
-            return (x.Position - y.Position).magnitude;
+        protected static float Norm(IVRiscuitObject x, IVRiscuitObject y) {
+            var result = (x.Position - y.Position).magnitude;
+#if UNITY_EDITOR
+            //Debug.Log(String.Format("Norm({0}, {1}) = {2}", x.Type, y.Type, result));
+#endif
+            return result;
         }
 
-        private static float Rdir(IVRiscuitObject x, IVRiscuitObject y) {
-            return Quaternion.Angle(x.Rotation, Quaternion.FromToRotation(x.Position, y.Position));
+        protected static float Rdir(IVRiscuitObject x, IVRiscuitObject y) {
+            var xtoy = y.Position - x.Position;
+            if(xtoy.magnitude == 0) { }
+            var result = Vector3.Angle(x.Rotation * Vector3.forward, xtoy);
+            // xからyへのベクトルvとxの回転クオータニオンqとの関係
+#if UNITY_EDITOR
+            //Debug.Log(String.Format("Rdir({0}, {1}) = {2}", x.Type, y.Type, result));
+#endif
+            return result;
         }
 
-        private static float Angle(IVRiscuitObject x, IVRiscuitObject y) {
-            return Quaternion.Angle(x.Rotation, y.Rotation);
+        protected static float Angle(IVRiscuitObject x, IVRiscuitObject y) {
+            var result = Quaternion.Angle(x.Rotation, y.Rotation);
+#if UNITY_EDITOR
+            //Debug.Log(String.Format("Angle({0}, {1}) = {2}", x.Type, y.Type, result));
+#endif
+            return result;
         }
 
-        private static float Eps(IVRiscuitObject a, IVRiscuitObject b, IVRiscuitObject x, IVRiscuitObject y, ScoreCoefficient ef) {
-            return (float)(1 - Math.Exp(-ef.c5 / Math.Pow(Norm(a, b) + Norm(x, y) + ef.c6, 2)));
+        protected static float Eps(IVRiscuitObject a, IVRiscuitObject b, IVRiscuitObject x, IVRiscuitObject y, ScoreCoefficient ef) {
+            var ab = Norm(a, b);
+            var xy = Norm(x, y);
+            /*
+            if (ab == 0 || xy == 0)
+            {
+                return 1;
+            }
+            */
+            var result = (float)(1 - Math.Exp(-ef.c5 / Math.Pow(ab + xy + ef.c6, 2)));
+#if UNITY_EDITOR
+            // Debug.Log(String.Format("Eps({0}, {1}, {2}, {3}) = {4}", a.Type, b.Type, x.Type, y.Type, result));
+#endif
+            return result;
         }
 
         #endregion

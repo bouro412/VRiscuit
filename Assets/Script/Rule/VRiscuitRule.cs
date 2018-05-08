@@ -23,6 +23,15 @@ namespace VRiscuit.Rule {
                 return BeforePattern.VRiscuitObjects;
             }
         }
+
+        IVRiscuitObjectSet IRule.AfterObjectSet
+        {
+            get
+            {
+                return AfterPattern.ResultObjectSet;
+            }
+        }
+
         /// <summary>
         /// テーブルの実体
         /// </summary>
@@ -60,7 +69,7 @@ namespace VRiscuit.Rule {
         /// <param name="objectsTable"></param>
         void IRule.Apply(IVRiscuitObjectSet objectsTable) {
             var beforeTable = new VRiscuitObjectSet(objectsTable);
-            DescentMethod(objectsTable,beforeTable, _beforeObjectSet, _afterObjectSet);
+            DescentMethod(objectsTable,beforeTable, _afterObjectSet, _beforeObjectSet);
         }
 
         /// <summary>
@@ -73,7 +82,7 @@ namespace VRiscuit.Rule {
         private void DescentMethod(IVRiscuitObjectSet currentTable, IVRiscuitObjectSet beforeTable, IVRiscuitObjectSet afterRuleTable, IVRiscuitObjectSet beforeRuleTable) {
             var limit = 100;
             var beforeScore = 0.0f;
-            var alpha = 1.0f;
+            var alpha = 0.01f;
             var beforec = new VRiscuitObjectSet(beforeRuleTable);
             var currentc = new VRiscuitObjectSet(currentTable);
             float[] parameters = currentc.ToParameters();
@@ -81,22 +90,26 @@ namespace VRiscuit.Rule {
                 (currentc as IVRiscuitObjectSet).SetParameter(param);
                 return RuleManager.CalcAppliedFieldScore(currentc, beforec, afterRuleTable, beforeRuleTable);
             };
-            var f = 0.05; // scoreの変動がこの値以下になったら終わり
+            var f = 0.0001; // scoreの変動がこの値以下になったら終わり
             for(int i = 0; i < limit; i++) {
-                // 
                 var score = func(parameters);
-                if(Mathf.Abs(beforeScore - score) <= f || i != 0) {
+                var message = String.Format("{0}: {1}, {2}, {3} => {4} points", i, parameters[0], parameters[1], parameters[2], score);
+                Debug.Log(message);
+                if (Mathf.Abs(beforeScore - score) <= f && i != 0) {
                     // 終了
                     currentTable.SetParameter(parameters);
                     return;
                 }
                 beforeScore = score;
                 var delta = Differential(func, parameters);
+                Debug.Log("delta = " + delta.Skip(1).Aggregate(delta[0].ToString(), (acc, next) => acc + ", " + next.ToString()));
                 for(int j = 0; j < parameters.Length; j++) {
                     parameters[j] += delta[j] * alpha;
                 }
+                Debug.Log("parameter = " + parameters.Skip(1).Aggregate(parameters[0].ToString(), (acc, next) => acc + ", " + next.ToString()));
+                alpha *= 0.95f;
             }
-        }
+        }   
 
         /// <summary>
         /// 配列の各変数で偏微分した配列を返す
