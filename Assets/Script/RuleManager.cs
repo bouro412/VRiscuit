@@ -236,8 +236,8 @@ namespace VRiscuit {
         {
             return new float[] {
                 ef.c0 * Delta(Norm(a, b), Norm(x, y), ef.w0),
-                ef.c1 * Eps(a, b, x, y, ef) * Delta(Rdir(a, b), Rdir(x, y), ef.w1),
-                ef.c2 * Eps(a, b, x, y, ef) * Delta(Rdir(b, a), Rdir(y, x), ef.w2),
+                ef.c1 * /* Eps(a, b, x, y, ef) */ Delta(Rdir(a, b), Rdir(x, y), ef.w1),
+                ef.c2 * /* Eps(a, b, x, y, ef) */ Delta(Rdir(b, a), Rdir(y, x), ef.w2),
                 ef.c3 * Delta(Angle(a, b), Angle(x, y), ef.w3)
             };
         }

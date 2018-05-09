@@ -38,7 +38,7 @@ namespace VRiscuit.Test
         }
 
         [Test]
-        public void ScoreTest()
+        public void PositionScoreTest()
         {
             var zero = new CalculateObject(new Vector3(0, 0, 0), Quaternion.Euler(0, 0, 0), "zero");
             var front = new CalculateObject(new Vector3(0, 0, 0.5f), Quaternion.Euler(0, 0, 0), "pointOne");
@@ -68,6 +68,19 @@ namespace VRiscuit.Test
             Assert.That(upScore, Is.GreaterThan(zeroScore).And.LessThan(frontScore), "up < zero < front");
             Assert.That(frontUpScore, Is.GreaterThan(frontUpLeftScore).And.LessThan(frontScore), "frontUpLeft < frontUp < front");
             Assert.That(frontScore, Is.GreaterThan(front4Score).And.LessThan(front6Score), "front4 < front < front6");
+        }
+
+        [Test]
+        public void RotateScoreTest()
+        {
+            var zero = new CalculateObject(new Vector3(0, 0, 0), Quaternion.Euler(0, 0, 0), "zero");
+            var a = new CalculateObject(new Vector3(0, 0, 0), Quaternion.Euler(0, 30, 0), "a");
+            var ten = new CalculateObject(new Vector3(0, 0, 0), Quaternion.Euler(0, 10, 0), "ten");
+            Func<CalculateObject, float> ScoreFunc = obj => CalcTwoObjectSimilarity(zero, a, zero, obj);
+            var zeroScore = ScoreFunc.Invoke(zero);
+            var aScore = ScoreFunc.Invoke(a);
+            var tenScore = ScoreFunc.Invoke(ten);
+            Assert.That(tenScore, Is.GreaterThan(zeroScore).And.LessThan(aScore));
         }
 
         private void LogArray<T>(IEnumerable<T> array)

@@ -52,6 +52,36 @@ namespace VRiscuit.Test {
         }
 
         [Test]
+        public void RotateTest()
+        {
+            var rules = new IRule[]
+            {
+                new RuleMaker()
+                {
+                    Before = new IVRiscuitObject[]
+                    {
+                        new CalculateObject(new Vector3(0, 0, 0), Quaternion.identity, "rotate")
+                    },
+                    After = new IVRiscuitObject[]
+                    {
+                        new CalculateObject(new Vector3(0, 0, 0), Quaternion.Euler(0, 30, 0), "rotate")
+                    }
+                }.Convert()
+            };
+            var objs = new VRiscuitObjectSet(new IVRiscuitObject[]
+            {
+                new CalculateObject(new Vector3(0, 0, 0), Quaternion.identity, "rotate")
+            });
+            var manager = new RuleManager(objs, rules);
+            int i = 1;
+            ApplyInSec(() => {
+                manager.ApplyRule();
+                Debug.Log(string.Format("{0}: pos = {1}, rot = {2}", i++, objs.First().Position, objs.First().Rotation));
+            });
+            var obj = objs.First();
+        }
+
+        [Test]
         public void CurveTest()
         {
             var rules = new IRule[]
