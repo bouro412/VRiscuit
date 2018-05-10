@@ -81,7 +81,7 @@ namespace VRiscuit.Rule {
         private void DescentMethod(IVRiscuitObjectSet currentTable, IVRiscuitObjectSet afterRuleTable, IVRiscuitObjectSet beforeRuleTable) {
             var limit = 100;
             var beforeScore = 0.0f;
-            var alpha = 0.01f;
+            var alpha = RuleManager.alpha;
             var beforec = new VRiscuitObjectSet(currentTable);
             var currentc = new VRiscuitObjectSet(currentTable);
             float[] parameters = currentc.ToParameters();
@@ -89,22 +89,22 @@ namespace VRiscuit.Rule {
                 (currentc as IVRiscuitObjectSet).SetParameter(param);
                 return RuleManager.CalcAppliedFieldScore(currentc, beforec, afterRuleTable, beforeRuleTable);
             };
-            var f = 0.0001; // scoreの変動がこの値以下になったら終わり
+            var f = 0.00001; // scoreの変動がこの値以下になったら終わり
             for(int i = 0; i < limit; i++) {
                 var score = func(parameters);
                 var message = String.Format("{0}: {1}, {2}, {3} => {4} points", i, parameters[0], parameters[1], parameters[2], score);
-                //Debug.Log(message);
+                Debug.Log(message);
                 if (Mathf.Abs(beforeScore - score) <= f && i != 0) {
                     // 終了
                     break;
                 }
                 beforeScore = score;
                 var delta = Differential(func, parameters);
-                Debug.Log("delta = " + delta.Skip(1).Aggregate(delta[0].ToString(), (acc, next) => acc + ", " + next.ToString()));
+                // Debug.Log("delta = " + delta.Skip(1).Aggregate(delta[0].ToString(), (acc, next) => acc + ", " + next.ToString()));
                 for(int j = 0; j < parameters.Length; j++) {
                     parameters[j] += delta[j] * alpha;
                 }
-                Debug.Log("parameter = " + parameters.Skip(1).Aggregate(parameters[0].ToString(), (acc, next) => acc + ", " + next.ToString()));
+                // Debug.Log("parameter = " + parameters.Skip(1).Aggregate(parameters[0].ToString(), (acc, next) => acc + ", " + next.ToString()));
                 alpha *= 0.95f;
             }
             var beforeParam = beforec.ToParameters();

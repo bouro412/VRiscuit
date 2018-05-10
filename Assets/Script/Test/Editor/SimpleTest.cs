@@ -33,7 +33,11 @@ namespace VRiscuit.Test {
             };
             var objs = new VRiscuitObjectSet(new IVRiscuitObject[] { new CalculateObject(new Vector3(0, 0, 0), Quaternion.identity, "Cube") });
             var manager = new RuleManager(objs, rules);
-            ApplyInSec(() => manager.ApplyRule());
+            int i = 1;
+            ApplyInSec(() => {
+                manager.ApplyRule();
+                Debug.Log(string.Format("{0}: pos = {1}, rot = {2}", i++, objs.First().Position, objs.First().Rotation));
+            });
             var obj = manager.CurrentObjectSet;
             Assert.AreEqual(obj.Size, 1);
             Assert.AreEqual(obj.First().Type, "Cube");
@@ -79,6 +83,12 @@ namespace VRiscuit.Test {
                 Debug.Log(string.Format("{0}: pos = {1}, rot = {2}", i++, objs.First().Position, objs.First().Rotation));
             });
             var obj = objs.First();
+            Assert.That(obj.Position.x, Is.GreaterThan(-0.1f).And.LessThan(0.1f));
+            Assert.That(obj.Position.y, Is.GreaterThan(-0.1f).And.LessThan(0.1f));
+            Assert.That(obj.Position.z, Is.GreaterThan(-0.1f).And.LessThan(0.1f));
+            Assert.That(obj.Rotation.x, Is.GreaterThan(-0.1f).And.LessThan(0.1f));
+            Assert.That(obj.Rotation.y, Is.GreaterThan(29.0f).And.LessThan(31.0f));
+            Assert.That(obj.Rotation.z, Is.GreaterThan(-0.1f).And.LessThan(0.1f));
         }
 
         [Test]

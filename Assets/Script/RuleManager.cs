@@ -204,27 +204,24 @@ namespace VRiscuit {
         }
 
         public class ScoreCoefficient {
-            public float c0 = 5f;
-            public float c1 = 10;
-            public float c2 = 10;
+            public float c0 = 10f;
+            public float c1 = 5;
+            public float c2 = 5;
             public float c3 = 10;
             public float c4 = 1;
             public float c5 = 10;
-            public float c6 = 1;
-            public float w0 = 10;
+            public float c6 = 10;
+            public float w0 = 1;
             public float w1 = 10000;
             public float w2 = 10000;
-            public float w3 = 1;
+            public float w3 = 10000;
             public float w4 = 1;
         }
 
+        public static readonly float alpha = 0.3f;
+
         public static float CalcTwoObjectSimilarity(IVRiscuitObject a, IVRiscuitObject b, IVRiscuitObject x, IVRiscuitObject y, ScoreCoefficient ef) {
-            var score = 0.0f;
-            score += ef.c0 * Delta(Norm(a, b), Norm(x, y), ef.w0);
-            score += ef.c1 * /* Eps(a, b, x, y, ef) */ Delta(Rdir(a, b), Rdir(x, y), ef.w1);
-            score += ef.c2 * /* Eps(a, b, x, y, ef) */ Delta(Rdir(b, a), Rdir(y, x), ef.w2);
-            score += ef.c3 * Delta(Angle(a, b), Angle(x, y), ef.w3);
-            return score;
+            return CalcTwoObjectSimilarityparameters(a, b, x, y).Sum();
         }        
 
         public static float CalcTwoObjectSimilarity(IVRiscuitObject a, IVRiscuitObject b, IVRiscuitObject x, IVRiscuitObject y)
@@ -236,8 +233,8 @@ namespace VRiscuit {
         {
             return new float[] {
                 ef.c0 * Delta(Norm(a, b), Norm(x, y), ef.w0),
-                ef.c1 * /* Eps(a, b, x, y, ef) */ Delta(Rdir(a, b), Rdir(x, y), ef.w1),
-                ef.c2 * /* Eps(a, b, x, y, ef) */ Delta(Rdir(b, a), Rdir(y, x), ef.w2),
+                ef.c1 *  Eps(a, b, x, y, ef) * Delta(Rdir(a, b), Rdir(x, y), ef.w1),
+                ef.c2 *  Eps(a, b, x, y, ef) * Delta(Rdir(b, a), Rdir(y, x), ef.w2),
                 ef.c3 * Delta(Angle(a, b), Angle(x, y), ef.w3)
             };
         }
@@ -292,12 +289,6 @@ namespace VRiscuit {
         protected static float Eps(IVRiscuitObject a, IVRiscuitObject b, IVRiscuitObject x, IVRiscuitObject y, ScoreCoefficient ef) {
             var ab = Norm(a, b);
             var xy = Norm(x, y);
-            /*
-            if (ab == 0 || xy == 0)
-            {
-                return 1;
-            }
-            */
             var result = (float)(1 - Math.Exp(-ef.c5 / Math.Pow(ab + xy + ef.c6, 2)));
 #if UNITY_EDITOR
             // Debug.Log(String.Format("Eps({0}, {1}, {2}, {3}) = {4}", a.Type, b.Type, x.Type, y.Type, result));
