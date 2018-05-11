@@ -92,11 +92,12 @@ namespace VRiscuit.Rule {
             var b = new VRiscuitObjectSet(beforeRuleTable).ToParameters();
             var ParamLength = TwoArrayDistance(a, b);
             var alpha = ParamLength;
-            var f = 0.00001; // scoreの変動がこの値以下になったら終わり
+            var f = 0.001; // scoreの変動がこの値以下になったら終わり
             for(int i = 0; i < limit; i++) {
                 var score = func(parameters);
                 var message = String.Format("{0}: {1}, {2}, {3} => {4} points", i, parameters[0], parameters[1], parameters[2], score);
                 Debug.Log(message);
+                Debug.Log(alpha);
                 if (Mathf.Abs(beforeScore - score) <= f && i != 0) {
                     // 終了
                     break;
@@ -111,7 +112,7 @@ namespace VRiscuit.Rule {
                     parameters[j] += delta[j] * alpha;
                 }
                 // Debug.Log("parameter = " + parameters.Skip(1).Aggregate(parameters[0].ToString(), (acc, next) => acc + ", " + next.ToString()));
-                alpha *= 0.5f;
+                alpha *= (float)Math.Exp(-alpha);
             }
             var beforeParam = beforec.ToParameters();
             var d = new float[beforeParam.Length];
@@ -133,7 +134,7 @@ namespace VRiscuit.Rule {
         /// <returns></returns>
         private float[] Differential(Func<float[], float> func, float[] parameters) {
             var ret = new float[parameters.Length];
-            var h = 0.1f;
+            var h = 0.01f;
             var current = func(parameters);
             for(int i = 0; i < parameters.Length; i++) {
                 parameters[i] += h;

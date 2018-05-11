@@ -49,7 +49,7 @@ namespace VRiscuit.Test {
             Debug.Log(pos.y);
             Assert.That(pos.x, Is.InRange(-0.1f, 0.1f));
             Assert.That(pos.y, Is.InRange(-0.1f, 0.1f));
-            Assert.That(pos.z, Is.GreaterThan(1.0f));
+            Assert.That(pos.z, Is.InRange(-0.9f, 1.1f));
             Assert.That(rot.x, Is.InRange(-0.1f, 0.1f));
             Assert.That(rot.y, Is.InRange(-0.1f, 0.1f));
             Assert.That(rot.z, Is.InRange(-0.1f, 0.1f));

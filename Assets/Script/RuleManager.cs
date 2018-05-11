@@ -204,13 +204,13 @@ namespace VRiscuit {
         }
 
         public class ScoreCoefficient {
-            public float c0 = 10f;
-            public float c1 = 5;
-            public float c2 = 5;
+            public float c0 = 5f;
+            public float c1 = 10;
+            public float c2 = 10;
             public float c3 = 10;
             public float c4 = 1;
-            public float c5 = 10;
-            public float c6 = 10;
+            public float c5 = 400;
+            public float c6 = 15;
             public float w0 = 1;
             public float w1 = 10000;
             public float w2 = 10000;
@@ -218,8 +218,17 @@ namespace VRiscuit {
             public float w4 = 1;
         }
 
-        public static readonly float alpha = 0.3f;
+        public static readonly float alpha = 0.01f;
 
+        /// <summary>
+        /// a,bは必ずルール内のオブジェクトなので、ルール中は不変
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="ef"></param>
+        /// <returns></returns>
         public static float CalcTwoObjectSimilarity(IVRiscuitObject a, IVRiscuitObject b, IVRiscuitObject x, IVRiscuitObject y, ScoreCoefficient ef) {
             return CalcTwoObjectSimilarityparameters(a, b, x, y).Sum();
         }        
@@ -233,8 +242,8 @@ namespace VRiscuit {
         {
             return new float[] {
                 ef.c0 * Delta(Norm(a, b), Norm(x, y), ef.w0),
-                ef.c1 *  Eps(a, b, x, y, ef) * Delta(Rdir(a, b), Rdir(x, y), ef.w1),
-                ef.c2 *  Eps(a, b, x, y, ef) * Delta(Rdir(b, a), Rdir(y, x), ef.w2),
+                ef.c1 * Eps(a, b, x, y, ef) * Delta(Rdir(a, b), Rdir(x, y), ef.w1),
+                ef.c2 * Eps(a, b, x, y, ef) * Delta(Rdir(b, a), Rdir(y, x), ef.w2),
                 ef.c3 * Delta(Angle(a, b), Angle(x, y), ef.w3)
             };
         }
@@ -289,13 +298,19 @@ namespace VRiscuit {
         protected static float Eps(IVRiscuitObject a, IVRiscuitObject b, IVRiscuitObject x, IVRiscuitObject y, ScoreCoefficient ef) {
             var ab = Norm(a, b);
             var xy = Norm(x, y);
-            var result = (float)(1 - Math.Exp(-ef.c5 / Math.Pow(ab + xy + ef.c6, 2)));
+            var result = (float)(1 - Math.Exp(-ef.c5 / Math.Pow(ab /*+ xy*/ + ef.c6, 2)));
 #if UNITY_EDITOR
             // Debug.Log(String.Format("Eps({0}, {1}, {2}, {3}) = {4}", a.Type, b.Type, x.Type, y.Type, result));
 #endif
             return result;
         }
 
+        /*
+        protected static float Eps2(IVRiscuitObject a, IVRiscuitObject b, IVRiscuitObject x, IVRiscuitObject y, ScoreCoefficient ef)
+        {
+
+        }
+        */
         #endregion
         #region テスト用関数
         protected void AddRule(IVRiscuitObject[] before, IVRiscuitObject[] after)

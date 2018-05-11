@@ -177,6 +177,12 @@ namespace VRiscuit.Test
             IVRiscuitObject zero = new CalculateObject(new Vector3(0, 0, 0), Quaternion.Euler(0, 0, 0), "zero");
             IVRiscuitObject one = new CalculateObject(new Vector3(0, 0, 1), Quaternion.Euler(0, 0, 0), "one");
             IVRiscuitObject yone = new CalculateObject(new Vector3(0, 1, 0), Quaternion.Euler(0, 0, 0), "yone");
+            var a = GenCalObj(-0.1470235f, -0.1470365f, 0.9444349f, "sample");
+            var f = ScoreFun(zero as CalculateObject, one as CalculateObject);
+            Debug.Log("Best Score: " + f(one as CalculateObject));
+            Debug.Log(String.Format("a Score: {0} => {1}", f(a), ArrayToString(CalcTwoObjectSimilarityparameters(zero, one, zero, a))));
+            var b = GenCalObj(-0.1470235f, -0.1470365f, 0.9544349f, "sample");
+            Debug.Log(String.Format("a Score: {0} => {1}", f(b), ArrayToString(CalcTwoObjectSimilarityparameters(zero, one, zero, b))));
             Debug.Log(yone.Position - zero.Position);
             Debug.Log(zero.Rotation * Vector3.forward);
             Debug.Log(RuleManager.Rdir(zero, one));
@@ -186,5 +192,10 @@ namespace VRiscuit.Test
             Debug.Log(EditorUserBuildSettings.activeScriptCompilationDefines.Length); //.Aggregate((s1, s2) => s1 + "\n" + s2));
         }
 
+        public string ArrayToString<T>(T[] fs)
+        {
+            var message = fs.Aggregate("", (t, acc) => t.ToString() + ", " + acc.ToString());
+            return "[" + message.Substring(2) + "]";
+        }
     }
 }
