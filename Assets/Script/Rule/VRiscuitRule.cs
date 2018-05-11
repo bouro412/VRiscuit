@@ -81,7 +81,6 @@ namespace VRiscuit.Rule {
         private void DescentMethod(IVRiscuitObjectSet currentTable, IVRiscuitObjectSet afterRuleTable, IVRiscuitObjectSet beforeRuleTable) {
             var limit = 100;
             var beforeScore = 0.0f;
-            var alpha = RuleManager.alpha;
             var beforec = new VRiscuitObjectSet(currentTable);
             var currentc = new VRiscuitObjectSet(currentTable);
             float[] parameters = currentc.ToParameters();
@@ -89,6 +88,10 @@ namespace VRiscuit.Rule {
                 (currentc as IVRiscuitObjectSet).SetParameter(param);
                 return RuleManager.CalcAppliedFieldScore(currentc, beforec, afterRuleTable, beforeRuleTable);
             };
+            var a = new VRiscuitObjectSet(afterRuleTable).ToParameters();
+            var b = new VRiscuitObjectSet(beforeRuleTable).ToParameters();
+            var ParamLength = TwoArrayDistance(a, b);
+            var alpha = ParamLength;
             var f = 0.00001; // scoreの変動がこの値以下になったら終わり
             for(int i = 0; i < limit; i++) {
                 var score = func(parameters);
@@ -100,12 +103,15 @@ namespace VRiscuit.Rule {
                 }
                 beforeScore = score;
                 var delta = Differential(func, parameters);
+                // 正規化
+                delta = NormalizeArray(delta);
+
                 // Debug.Log("delta = " + delta.Skip(1).Aggregate(delta[0].ToString(), (acc, next) => acc + ", " + next.ToString()));
                 for(int j = 0; j < parameters.Length; j++) {
                     parameters[j] += delta[j] * alpha;
                 }
                 // Debug.Log("parameter = " + parameters.Skip(1).Aggregate(parameters[0].ToString(), (acc, next) => acc + ", " + next.ToString()));
-                alpha *= 0.95f;
+                alpha *= 0.5f;
             }
             var beforeParam = beforec.ToParameters();
             var d = new float[beforeParam.Length];
@@ -135,6 +141,32 @@ namespace VRiscuit.Rule {
                 parameters[i] -= h;
             }
             return ret;
+        }
+
+        /// <summary>
+        /// 微分したパラメーターのベクトルの正規化用
+        /// </summary>
+        /// <param name="arry"></param>
+        /// <returns></returns>
+        private float[] NormalizeArray(float[] arry)
+        {
+            var sum = Mathf.Sqrt(arry.Select(f => f * f).Sum());
+            return arry.Select(f => f / sum).ToArray();
+        }
+
+        private float TwoArrayDistance(float[] a, float[] b)
+        {
+            if(a.Length != b.Length)
+            {
+                Debug.LogError("パラメーターの数が異なっています");
+                return 0.0f;
+            }
+            var sum = 0.0f;
+            for(int i = 0;i < a.Length; i++)
+            {
+                sum += (float)Mathf.Pow((a[i] - b[i]), 2);
+            }
+            return Mathf.Sqrt(sum);
         }
     }
 }
