@@ -214,7 +214,7 @@ namespace VRiscuit {
             public float w0 = 1;
             public float w1 = 10000;
             public float w2 = 10000;
-            public float w3 = 10000;
+            public float w3 = 1000;
             public float w4 = 1;
         }
 
@@ -298,6 +298,7 @@ namespace VRiscuit {
         protected static float Eps(IVRiscuitObject a, IVRiscuitObject b, IVRiscuitObject x, IVRiscuitObject y, ScoreCoefficient ef) {
             var ab = Norm(a, b);
             var xy = Norm(x, y);
+            if (ab == 0) return 0;
             var result = (float)(1 - Math.Exp(-ef.c5 / Math.Pow(ab /*+ xy*/ + ef.c6, 2)));
 #if UNITY_EDITOR
             // Debug.Log(String.Format("Eps({0}, {1}, {2}, {3}) = {4}", a.Type, b.Type, x.Type, y.Type, result));

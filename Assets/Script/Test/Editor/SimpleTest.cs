@@ -72,6 +72,7 @@ namespace VRiscuit.Test {
                     }
                 }.Convert()
             };
+            Debug.Log("after Rotation = "+rules.First().AfterObjectSet.First().Rotation);
             var objs = new VRiscuitObjectSet(new IVRiscuitObject[]
             {
                 new CalculateObject(new Vector3(0, 0, 0), Quaternion.identity, "rotate")
@@ -80,7 +81,7 @@ namespace VRiscuit.Test {
             int i = 1;
             ApplyInSec(() => {
                 manager.ApplyRule();
-                Debug.Log(string.Format("{0}: pos = {1}, rot = {2}", i++, objs.First().Position, objs.First().Rotation));
+                Debug.Log(string.Format("{0}: pos = {1}, rot = {2}", i++, objs.First().Position, objs.First().Rotation.eulerAngles));
             });
             var obj = objs.First();
             Assert.That(obj.Position.x, Is.GreaterThan(-0.1f).And.LessThan(0.1f));
@@ -138,7 +139,7 @@ namespace VRiscuit.Test {
             public VRiscuitRule Convert()
             {
                 var beforePattern = new BeforePattern(new VRiscuitObjectSet(Before));
-                var afterPattern = new AfterPattern(new VRiscuitObjectSet(Before));
+                var afterPattern = new AfterPattern(new VRiscuitObjectSet(After));
                 return new VRiscuitRule(beforePattern, afterPattern);
             }
         }

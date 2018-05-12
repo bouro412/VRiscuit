@@ -133,34 +133,30 @@ namespace VRiscuit.Test
             var zero = new CalculateObject(new Vector3(0, 0, 0), Quaternion.Euler(0, 0, 0), "zero");
             var a = new CalculateObject(new Vector3(0, 0, 0), Quaternion.Euler(0, 30, 0), "a");
             var ten = new CalculateObject(new Vector3(0, 0, 0), Quaternion.Euler(0, 10, 0), "ten");
+            var xten = new CalculateObject(new Vector3(0, 0, 0), Quaternion.Euler(10, 0, 0), "xten");
             var zmove = new CalculateObject(new Vector3(0, 0, 1), Quaternion.Euler(0, 0, 0), "zmove");
             var xmove = new CalculateObject(new Vector3(1, 0, 0), Quaternion.Euler(0, 0, 0), "xmove");
             Func<CalculateObject, float> ScoreFunc = obj => CalcTwoObjectSimilarity(zero, a, zero, obj);
-            var zeroScore = ScoreFunc.Invoke(zero);
-            var aScore = ScoreFunc.Invoke(a);
-            var tenScore = ScoreFunc.Invoke(ten);
+            var zeroScore = ScoreFunc(zero);
+            var aScore = ScoreFunc(a);
+            var tenScore = ScoreFunc(ten);
             var zmoveScore = ScoreFunc(zmove);
             var xmoveScore = ScoreFunc(xmove);
+            var xtenScore = ScoreFunc(xten);
             Func<CalculateObject, float[]> ParamFunc = obj => CalcTwoObjectSimilarityparameters(zero, a, zero, obj);
             LogArray(ParamFunc(zero));
             LogArray(ParamFunc(a));
             LogArray(ParamFunc(ten));
+            LogArray(ParamFunc(xten));
             LogArray(ParamFunc(zmove));
-            var c3 = 10;
-            var w3 = 10000;
-            Debug.Log(zeroScore);
-            Debug.Log(zmoveScore);
-            Debug.Log(xmoveScore);
-            Debug.Log(tenScore);
-            Debug.Log(aScore);
-            Debug.Log(c3 * Delta(0, 0, w3));
-            Debug.Log(c3 * Delta(0, 30, w3));
-            Debug.Log(c3 * Delta(0, 60, w3));
-            Debug.Log(c3 * Delta(0, 90, w3));
-            Debug.Log(c3 * Delta(0, 120, w3));
-            Debug.Log(c3 * Delta(0, 150, w3));
-            Debug.Log(c3 * Delta(0, 180, w3));
-            Assert.That(tenScore, Is.GreaterThan(zeroScore).And.LessThan(aScore));
+            LogArray(ParamFunc(xmove));
+            Debug.Log(Angle(zero, a));
+            Debug.Log(Angle(zero, ten));
+            Debug.Log(Angle(zero, xten));
+            Debug.Log(Quaternion.Angle((a as IVRiscuitObject).Rotation, (ten as IVRiscuitObject).Rotation));
+            Debug.Log(Quaternion.Angle((a as IVRiscuitObject).Rotation, (xten as IVRiscuitObject).Rotation));
+            Debug.Log(Quaternion.Angle((a as IVRiscuitObject).Rotation, Quaternion.Euler(10,0,0)));
+            Assert.That(tenScore, Is.GreaterThan(xtenScore).And.LessThan(aScore));
         }
 
         private void LogArray<T>(IEnumerable<T> array)
@@ -189,7 +185,8 @@ namespace VRiscuit.Test
             Debug.Log(Delta(0, 100, 10000));
             Debug.Log(Vector3.Angle(Vector3.forward, new Vector3(0, 0, 0)));
             Debug.Log(Vector3.Angle(Vector3.forward, Vector3.back));
-            Debug.Log(EditorUserBuildSettings.activeScriptCompilationDefines.Length); //.Aggregate((s1, s2) => s1 + "\n" + s2));
+            Debug.Log(Quaternion.Angle(Quaternion.Euler(0, 30, 0), Quaternion.Euler(0, 10, 0)));
+            Debug.Log(Quaternion.Angle(Quaternion.Euler(0, 30, 0), Quaternion.Euler(10, 0, 0)));
         }
 
         public string ArrayToString<T>(T[] fs)

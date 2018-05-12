@@ -97,7 +97,7 @@ namespace VRiscuit.Rule {
                 var score = func(parameters);
                 var message = String.Format("{0}: {1}, {2}, {3} => {4} points", i, parameters[0], parameters[1], parameters[2], score);
                 Debug.Log(message);
-                Debug.Log(alpha);
+                Debug.Log("alpha = " + alpha);
                 if (Mathf.Abs(beforeScore - score) <= f && i != 0) {
                     // 終了
                     break;
@@ -107,12 +107,12 @@ namespace VRiscuit.Rule {
                 // 正規化
                 delta = NormalizeArray(delta);
 
-                // Debug.Log("delta = " + delta.Skip(1).Aggregate(delta[0].ToString(), (acc, next) => acc + ", " + next.ToString()));
+                Debug.Log("delta = " + delta.Skip(1).Aggregate(delta[0].ToString(), (acc, next) => acc + ", " + next.ToString()));
                 for(int j = 0; j < parameters.Length; j++) {
                     parameters[j] += delta[j] * alpha;
                 }
                 // Debug.Log("parameter = " + parameters.Skip(1).Aggregate(parameters[0].ToString(), (acc, next) => acc + ", " + next.ToString()));
-                alpha *= (float)Math.Exp(-alpha);
+                alpha *= Mathf.Max((float)Math.Exp(-alpha), 0.1f);
             }
             var beforeParam = beforec.ToParameters();
             var d = new float[beforeParam.Length];
@@ -137,6 +137,10 @@ namespace VRiscuit.Rule {
             var h = 0.01f;
             var current = func(parameters);
             for(int i = 0; i < parameters.Length; i++) {
+                if(i % 6 > 2)
+                {
+                    h = 10;
+                }
                 parameters[i] += h;
                 ret[i] = (func(parameters) - current) / h;
                 parameters[i] -= h;
@@ -157,7 +161,9 @@ namespace VRiscuit.Rule {
 
         private float TwoArrayDistance(float[] a, float[] b)
         {
-            if(a.Length != b.Length)
+            Debug.Log(a.Skip(1).Aggregate(a[0].ToString(), (s, next) => s + ", " + next.ToString()));
+            Debug.Log(b.Skip(1).Aggregate(b[0].ToString(), (s, next) => s + ", " + next.ToString()));
+            if (a.Length != b.Length)
             {
                 Debug.LogError("パラメーターの数が異なっています");
                 return 0.0f;
