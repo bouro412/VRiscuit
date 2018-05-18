@@ -119,7 +119,7 @@ namespace VRiscuit.Test {
                 manager.ApplyRule();
                 Debug.Log(string.Format("{0}: pos = {1}, rot = {2}", i++, objs.First().Position, objs.First().Rotation));
             });
-            Assert.AreEqual(1, 1);
+            
         }
 
         private void ApplyInSec(Action func, float sec = 1.0f)

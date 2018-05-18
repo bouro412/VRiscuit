@@ -13,5 +13,6 @@ namespace VRiscuit.Interface {
         void SetParameter(float[] parameter);
         int Size { get; }
         IVRiscuitObject this[int i] { get; set; }
+        Dictionary<string, int> DistributionTable { get; }
     }
 }

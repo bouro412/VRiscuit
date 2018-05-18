@@ -39,6 +39,10 @@ namespace VRiscuit.Rule {
 
         private IVRiscuitObjectSet _afterObjectSet;
 
+        private Dictionary<String, int> _genDelTable;
+
+        private bool isGenerateOrDeleteObject;
+
         private class IndexPair {
             public int Before;
             public int After;
@@ -47,6 +51,8 @@ namespace VRiscuit.Rule {
                 After = after;
             }
         }
+
+        private bool _isDebug = false;
 
         /// <summary>
         /// </summary>
@@ -57,6 +63,21 @@ namespace VRiscuit.Rule {
             AfterPattern = after;
             _beforeObjectSet = BeforePattern.VRiscuitObjects;
             _afterObjectSet = AfterPattern.ResultObjectSet;
+            _genDelTable = new Dictionary<string, int>(_afterObjectSet.DistributionTable);
+            foreach (var kvp in _beforeObjectSet.DistributionTable)
+            {
+                if (_genDelTable.ContainsKey(kvp.Key))
+                {
+                    _genDelTable[kvp.Key] -= kvp.Value;
+                }
+                else {
+                    _genDelTable.Add(kvp.Key, -kvp.Value);
+                }
+                if (_genDelTable[kvp.Key] != 0)
+                {
+                    isGenerateOrDeleteObject = true;
+                }
+            }
         }
 
         public VRiscuitRule() {
@@ -68,7 +89,41 @@ namespace VRiscuit.Rule {
         /// </summary>
         /// <param name="objectsTable"></param>
         void IRule.Apply(IVRiscuitObjectSet objectsTable) {
+            GenerateOrDeleteObject(objectsTable);
             DescentMethod(objectsTable, _afterObjectSet, _beforeObjectSet);
+        }
+
+        void GenerateOrDeleteObject(IVRiscuitObjectSet objset)
+        {
+            if(isGenerateOrDeleteObject == false)
+            {
+                return;
+            }
+            foreach(var kvp in _genDelTable)
+            {
+                var val = kvp.Value;
+                if(val < 0)
+                {
+                    var objs = objset.TypeTable[kvp.Key];
+                    if (objs.Count < -val)
+                    {
+                        Debug.LogError("Error: 必要な数のオブジェクトがありません。");
+                        objs.RemoveAll((a) => true);
+                    }
+                    objs.RemoveRange(0, - val);
+                }
+                else if(val > 0)
+                {
+                    var first = objset.First();
+                    for(int i = 0; i < val; i++)
+                    {
+                        var pos = new Vector3(first.Position.x + 1, first.Position.y, first.Position.z);
+                        var rot = Quaternion.Euler(first.Rotation.eulerAngles.x, first.Rotation.eulerAngles.y, first.Rotation.eulerAngles.z);
+                        var x = _isDebug ? (IVRiscuitObject)new CalculateObject(pos, rot, kvp.Key) : new VRiscuitObject(pos, rot, kvp.Key);
+                        objset.Add(x);
+                    }
+                }
+            }
         }
 
         /// <summary>

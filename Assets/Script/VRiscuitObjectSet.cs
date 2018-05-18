@@ -109,6 +109,19 @@ namespace VRiscuit {
         /// </summary>
         int IVRiscuitObjectSet.Size { get { return (this as IVRiscuitObjectSet).ObjectArray.Length; } }
 
+        Dictionary<string, int> IVRiscuitObjectSet.DistributionTable
+        {
+            get
+            {
+                var result = new Dictionary<string, int>();
+                foreach(var kvp in _table)
+                {
+                    result.Add(kvp.Key, kvp.Value.Count());
+                }
+                return result;
+            }
+        }
+
         IVRiscuitObject IVRiscuitObjectSet.this[int i] { get { return (this as IVRiscuitObjectSet).ObjectArray[i]; }
                                                          set { (this as IVRiscuitObjectSet).ObjectArray[i] = value; } }
 
