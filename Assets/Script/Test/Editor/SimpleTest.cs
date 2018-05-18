@@ -93,35 +93,6 @@ namespace VRiscuit.Test {
             Assert.That(obj.Rotation.eulerAngles.z, Is.GreaterThan(-0.1f).And.LessThan(0.1f));
         }
 
-        [Test]
-        public void CurveTest()
-        {
-            var rules = new IRule[]
-            {
-                new RuleMaker(){
-                    Before = new IVRiscuitObject[]
-                    {
-                        new CalculateObject(new Vector3(0,0,0), Quaternion.identity, "Spear")
-                    },
-                    After = new IVRiscuitObject[]
-                    {
-                        new CalculateObject(new Vector3(0,0,1), Quaternion.Euler(0, 30, 0), "Spear")
-                    }
-                }.Convert()
-            };
-            var objs = new VRiscuitObjectSet(new IVRiscuitObject[] {
-                new CalculateObject(new Vector3(0, 0, 0), Quaternion.identity, "Spear")
-            });
-            var manager = new RuleManager(objs, rules);
-            int i = 0;
-            
-            ApplyInSec(() => {
-                manager.ApplyRule();
-                Debug.Log(string.Format("{0}: pos = {1}, rot = {2}", i++, objs.First().Position, objs.First().Rotation));
-            });
-            
-        }
-
         private void ApplyInSec(Action func, float sec = 1.0f)
         {
             var sum = 0.0f;
