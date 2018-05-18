@@ -19,6 +19,6 @@ namespace VRiscuit.Interface {
         /// ルールを適用するメソッド
         /// </summary>
         /// <param name="objectsTable"></param>
-        void Apply(IVRiscuitObjectSet objectsTable);
+        void Apply(IVRiscuitObjectSet objectsTable, IVRiscuitObjectSet globalTable);
     }
 }

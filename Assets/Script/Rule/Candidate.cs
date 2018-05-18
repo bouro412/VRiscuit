@@ -18,8 +18,8 @@ namespace VRiscuit.Rule {
             Score = score;
         }
 
-        public void RuleApply() {
-            _rule.Apply(_table);
+        public void RuleApply(IVRiscuitObjectSet globalTable) {
+            _rule.Apply(_table, globalTable);
         }
 
         public bool HasSameObject(Candidate another) {

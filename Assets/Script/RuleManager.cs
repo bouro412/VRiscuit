@@ -163,22 +163,21 @@ namespace VRiscuit {
                 return;
             var head = cands[0];
             var tail = cands.Skip(1);
-
-            head.RuleApply();
+            head.RuleApply(CurrentObjectSet);
             CallCands(tail.Where(cand => !head.HasSameObject(cand)).ToList());
         }
 
         #endregion
         #region scoreの計算
 
-        public static float CalcAppliedFieldScore(IVRiscuitObjectSet afterField, IVRiscuitObjectSet beforeField, IVRiscuitObjectSet afterRuleSet, IVRiscuitObjectSet beforeRuleSet) {
+        public static float CalcAppliedFieldScore(IVRiscuitObjectSet currentField, IVRiscuitObjectSet beforeField, IVRiscuitObjectSet afterRuleSet, IVRiscuitObjectSet beforeRuleSet) {
             var score = 0.0f;
-            for(int a = 0; a < afterField.Size; a++) {
+            for(int a = 0; a < currentField.Size; a++) {
                 for (int b = 0; b < beforeField.Size; b++) {
-                    score += CalcTwoObjectSimilarity(beforeRuleSet[b], afterRuleSet[a], beforeField[b], afterField[a], new ScoreCoefficient());
+                    score += CalcTwoObjectSimilarity(beforeRuleSet[b], afterRuleSet[a], beforeField[b], currentField[a], new ScoreCoefficient());
                 }
             }
-            score += CalcScore(afterRuleSet, afterField, new ScoreCoefficient());
+            score += CalcScore(afterRuleSet, currentField, new ScoreCoefficient());
             return score;
         }
 

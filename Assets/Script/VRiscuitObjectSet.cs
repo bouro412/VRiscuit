@@ -79,6 +79,18 @@ namespace VRiscuit {
             _table[type].Remove(target);
         }
 
+        void IVRiscuitObjectSet.Delete(IVRiscuitObject obj)
+        {
+            if(_table.ContainsKey(obj.Type) && _table[obj.Type].Contains(obj))
+            {
+                _table[obj.Type].Remove(obj);
+            }
+            else
+            {
+                Debug.LogError("ERROR: 削除予定のオブジェクトが見つかりませんでした: " + obj.Type);
+            }
+        }
+
         /// <summary>
         /// 与えられたパラメーターをもとにobjectの位置、回転を設定する
         /// </summary>
@@ -219,5 +231,7 @@ namespace VRiscuit {
                                        ).SelectMany(i => i).ToArray();
             return ret;
         }
+
+        
     }
 }

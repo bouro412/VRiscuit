@@ -43,6 +43,8 @@ namespace VRiscuit.Rule {
 
         private bool isGenerateOrDeleteObject;
 
+        private List<CalculateObject> _generatedObjects;
+
         private class IndexPair {
             public int Before;
             public int After;
@@ -52,18 +54,21 @@ namespace VRiscuit.Rule {
             }
         }
 
-        private bool _isDebug = false;
+        public bool IsDebug;
+
+        private float _paramLength;
 
         /// <summary>
         /// </summary>
         /// <param name="before"></param>
         /// <param name="after"></param>
-        public VRiscuitRule(IBeforePattern before, IAfterPattern after) {
+        public VRiscuitRule(IBeforePattern before, IAfterPattern after, bool isDebug = false) {
             BeforePattern = before;
             AfterPattern = after;
             _beforeObjectSet = BeforePattern.VRiscuitObjects;
             _afterObjectSet = AfterPattern.ResultObjectSet;
             _genDelTable = new Dictionary<string, int>(_afterObjectSet.DistributionTable);
+            IsDebug = isDebug;
             foreach (var kvp in _beforeObjectSet.DistributionTable)
             {
                 if (_genDelTable.ContainsKey(kvp.Key))
@@ -78,22 +83,37 @@ namespace VRiscuit.Rule {
                     isGenerateOrDeleteObject = true;
                 }
             }
-        }
-
-        public VRiscuitRule() {
-            
+            // alphaの値をルールの動き量で決める
+            var a = new VRiscuitObjectSet(_afterObjectSet).ToParameters();
+            var bSet = new VRiscuitObjectSet(_beforeObjectSet);
+            GenerateOrDeleteObject(bSet, null);
+            var b = bSet.ToParameters();
+            Debug.Log("a:" + a.Length);
+            Debug.Log("b:" + b.Length);
+            Debug.Log("bset: " + bSet.Count());
+            _paramLength = TwoArrayDistance(a, b);
         }
 
         /// <summary>
         /// ルールの適用
         /// </summary>
         /// <param name="objectsTable"></param>
-        void IRule.Apply(IVRiscuitObjectSet objectsTable) {
-            GenerateOrDeleteObject(objectsTable);
-            DescentMethod(objectsTable, _afterObjectSet, _beforeObjectSet);
+        void IRule.Apply(IVRiscuitObjectSet objectsTable, IVRiscuitObjectSet globalTable) {
+            var beforeTable = new VRiscuitObjectSet(objectsTable);
+            GenerateOrDeleteObject(objectsTable, globalTable);
+            DescentMethod(objectsTable, beforeTable, _afterObjectSet, _beforeObjectSet);
+            // 追加されたオブジェクトをmanagerのobjectSetに追加
+            foreach(var obj in _generatedObjects)
+            {
+                if (IsDebug) {
+                    globalTable.Add(obj);
+                    continue;
+                }
+
+            }
         }
 
-        void GenerateOrDeleteObject(IVRiscuitObjectSet objset)
+        private void GenerateOrDeleteObject(IVRiscuitObjectSet objset, IVRiscuitObjectSet globalTable)
         {
             if(isGenerateOrDeleteObject == false)
             {
@@ -108,20 +128,34 @@ namespace VRiscuit.Rule {
                     if (objs.Count < -val)
                     {
                         Debug.LogError("Error: 必要な数のオブジェクトがありません。");
+                        if(globalTable != null)
+                        {
+                            foreach(var obj in objs)
+                            {
+                                globalTable.Delete(obj);
+                            }
+                        }
                         objs.RemoveAll((a) => true);
                     }
-                    objs.RemoveRange(0, - val);
+                    for(int i = 0; i < -val; i++)
+                    {
+                        globalTable.Delete(objs[i]);
+                        objs.RemoveAt(i);
+                    }
                 }
                 else if(val > 0)
                 {
                     var first = objset.First();
+                    var generated = new List<CalculateObject>();
                     for(int i = 0; i < val; i++)
                     {
                         var pos = new Vector3(first.Position.x + 1, first.Position.y, first.Position.z);
                         var rot = Quaternion.Euler(first.Rotation.eulerAngles.x, first.Rotation.eulerAngles.y, first.Rotation.eulerAngles.z);
-                        var x = _isDebug ? (IVRiscuitObject)new CalculateObject(pos, rot, kvp.Key) : new VRiscuitObject(pos, rot, kvp.Key);
-                        objset.Add(x);
+                        var o = new CalculateObject(pos, rot, kvp.Key);
+                        objset.Add(o);
+                        generated.Add(o);
                     }
+                    _generatedObjects = generated;
                 }
             }
         }
@@ -133,32 +167,31 @@ namespace VRiscuit.Rule {
         /// <param name="beforeRuleTable"></param>
         /// <param name="afterRuleTable"></param>
         /// <param name="changes"></param>
-        private void DescentMethod(IVRiscuitObjectSet currentTable, IVRiscuitObjectSet afterRuleTable, IVRiscuitObjectSet beforeRuleTable) {
+        private void DescentMethod(IVRiscuitObjectSet currentTable, IVRiscuitObjectSet beforeTable, IVRiscuitObjectSet afterRuleTable, IVRiscuitObjectSet beforeRuleTable)
+        {
             var limit = 300;
             var beforeScore = 0.0f;
-            var beforec = new VRiscuitObjectSet(currentTable);
+            var beforec = new VRiscuitObjectSet(beforeTable);
             var currentc = new VRiscuitObjectSet(currentTable);
             var parameters = currentc.ToParameters();
-            var beforeDelta = new float[parameters.Length]; 
+            var beforeDelta = new float[parameters.Length];
 
-            Func<float[], float> func = delegate (float[] param) {
+            Func<float[], float> func = delegate (float[] param)
+            {
                 (currentc as IVRiscuitObjectSet).SetParameter(param);
                 return RuleManager.CalcAppliedFieldScore(currentc, beforec, afterRuleTable, beforeRuleTable);
             };
-
-            // alphaの値をルールの動き量で決める
-            var a = new VRiscuitObjectSet(afterRuleTable).ToParameters();
-            var b = new VRiscuitObjectSet(beforeRuleTable).ToParameters();
-            var ParamLength = TwoArrayDistance(a, b);
-            var alpha = ParamLength;
+            var alpha = _paramLength;
 
             var f = 0.001; // scoreの変動がこの値以下になったら終わり
-            for(int i = 0; i < limit; i++) {
+            for (int i = 0; i < limit; i++)
+            {
                 var score = func(parameters);
                 var message = String.Format("{0}: {1}, {2}, {3}, {5}, {6}, {7} => {4} points", i, parameters[0], parameters[1], parameters[2], score, parameters[3], parameters[4], parameters[5]);
                 // Debug.Log(message);
                 // Debug.Log("alpha = " + alpha);
-                if (Mathf.Abs(beforeScore - score) <= f && i != 0) {
+                if (Mathf.Abs(beforeScore - score) <= f && i != 0)
+                {
                     // 終了
                     break;
                 }
@@ -171,7 +204,7 @@ namespace VRiscuit.Rule {
                 // 同時にbeforeDeltaの更新
                 for (int di = 0; di < delta.Length; di++)
                 {
-                    if(delta[di] == 0)
+                    if (delta[di] == 0)
                     {
                         delta[di] = -(beforeDelta[di] / 2);
                         beforeDelta[di] /= 2;
@@ -182,9 +215,9 @@ namespace VRiscuit.Rule {
                     }
                 }
 
-
                 //Debug.Log("delta = " + delta.Skip(1).Aggregate(delta[0].ToString(), (acc, next) => acc + ", " + next.ToString()));
-                for(int j = 0; j < parameters.Length; j++) {
+                for (int j = 0; j < parameters.Length; j++)
+                {
                     parameters[j] += delta[j] * alpha;
                 }
                 // Debug.Log("parameter = " + parameters.Skip(1).Aggregate(parameters[0].ToString(), (acc, next) => acc + ", " + next.ToString()));
@@ -192,7 +225,7 @@ namespace VRiscuit.Rule {
             }
             var beforeParam = beforec.ToParameters();
             var d = new float[beforeParam.Length];
-            for(int i = 0; i < beforeParam.Length; i++)
+            for (int i = 0; i < beforeParam.Length; i++)
             {
                 var di = parameters[i] - beforeParam[i];
                 // 細かい部分を四捨五入, 秒間スピードに変更
@@ -200,7 +233,7 @@ namespace VRiscuit.Rule {
                 parameters[i] = beforeParam[i] + di;
             }
             currentTable.SetParameter(parameters);
-        }   
+        }
 
         /// <summary>
         /// 配列の各変数で偏微分した配列を返す

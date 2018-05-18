@@ -9,6 +9,7 @@ namespace VRiscuit.Interface {
         Dictionary<string, List<IVRiscuitObject>> TypeTable { get; }
         int Add(IVRiscuitObject newObject);
         void Delete(int index);
+        void Delete(IVRiscuitObject obj);
         List<IVRiscuitObject> GetByType(string type);
         void SetParameter(float[] parameter);
         int Size { get; }

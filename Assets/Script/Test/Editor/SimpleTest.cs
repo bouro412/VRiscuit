@@ -93,6 +93,37 @@ namespace VRiscuit.Test {
             Assert.That(obj.Rotation.eulerAngles.z, Is.GreaterThan(-0.1f).And.LessThan(0.1f));
         }
 
+        [Test]
+        public void GenerateTest()
+        {
+            var rules = new IRule[]
+            {
+                new RuleMaker()
+                {
+                    Before = new IVRiscuitObject[]
+                    {
+                        new CalculateObject(new Vector3(0, 0, 0), Quaternion.identity, "a")
+                    },
+                    After = new IVRiscuitObject[]
+                    {
+                        new CalculateObject(new Vector3(0, 0, 0), Quaternion.identity, "a"),
+                        new CalculateObject(new Vector3(1, 0, 0), Quaternion.identity, "a")
+                    }
+                }.Convert()
+            };
+            var objs = new VRiscuitObjectSet(new IVRiscuitObject[]
+            {
+                new CalculateObject(new Vector3(0, 0, 0), Quaternion.identity, "a")
+            });
+            var manager = new RuleManager(objs, rules);
+            int i = 1;
+
+            manager.ApplyRule();
+            Debug.Log(string.Format("{0} times Apply: {1}", i++, manager.CurrentObjectSet.ObjectArray.Aggregate("", (str, obj) => str + obj.Type + " ")));
+
+            Assert.That(((IVRiscuitObjectSet)manager.CurrentObjectSet).Size, Is.EqualTo(2));
+        }
+
         private void ApplyInSec(Action func, float sec = 1.0f)
         {
             var sum = 0.0f;
@@ -112,23 +143,8 @@ namespace VRiscuit.Test {
             {
                 var beforePattern = new BeforePattern(new VRiscuitObjectSet(Before));
                 var afterPattern = new AfterPattern(new VRiscuitObjectSet(After));
-                return new VRiscuitRule(beforePattern, afterPattern);
+                return new VRiscuitRule(beforePattern, afterPattern, true); 
             }
         }
-
-        [Test]
-        public void ScoreTest()
-        {
-            var beforeObjs = new VRiscuitObjectSet(new IVRiscuitObject[]{ new CalculateObject(new Vector3(0, 0, 0), Quaternion.identity, "Cube") });
-            var afterObjs1 = new VRiscuitObjectSet(new IVRiscuitObject[]{ new CalculateObject(new Vector3(0f, 0f, 2.0f), Quaternion.identity, "Cube") });
-            var correctObjs = new VRiscuitObjectSet(new IVRiscuitObject[]{ new CalculateObject(new Vector3(0, 0, 1.0f), Quaternion.identity, "Cube") });
-            var zeroScore = RuleManager.CalcAppliedFieldScore(beforeObjs, beforeObjs, SimpleRule.AfterObjectSet, SimpleRule.BeforeObjectSet);
-            var correctScore = RuleManager.CalcAppliedFieldScore(correctObjs, beforeObjs, SimpleRule.AfterObjectSet, SimpleRule.BeforeObjectSet);
-            var currentScore = RuleManager.CalcAppliedFieldScore(afterObjs1, beforeObjs, SimpleRule.AfterObjectSet, SimpleRule.BeforeObjectSet);
-            Debug.Log(zeroScore);
-            Debug.Log(currentScore);
-            Debug.Log(correctScore);
-        }
-
     }
 }
