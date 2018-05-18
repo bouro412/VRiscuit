@@ -109,7 +109,7 @@ namespace VRiscuit.Test
 
         private CalculateObject GenCalObj(float x, float y, float z, float rx, float ry, float rz, string type)
         {
-            return new CalculateObject(new Vector3(x, y, z), Quaternion.Euler(0, 0, 0), type);
+            return new CalculateObject(new Vector3(x, y, z), Quaternion.Euler(rx, ry, rz), type);
         }
 
         private CalculateObject GenCalObj(float x, float y, float z, string type)
@@ -132,7 +132,7 @@ namespace VRiscuit.Test
         {
             var zero = new CalculateObject(new Vector3(0, 0, 0), Quaternion.Euler(0, 0, 0), "zero");
             var a = new CalculateObject(new Vector3(0, 0, 0), Quaternion.Euler(0, 30, 0), "a");
-            var ten = new CalculateObject(new Vector3(0, 0, 0), Quaternion.Euler(0, 10, 0), "ten");
+            var ten = new CalculateObject(new Vector3(0, 0, 0), Quaternion.Euler(0, 1, 0), "ten");
             var xten = new CalculateObject(new Vector3(0, 0, 0), Quaternion.Euler(10, 0, 0), "xten");
             var zmove = new CalculateObject(new Vector3(0, 0, 1), Quaternion.Euler(0, 0, 0), "zmove");
             var xmove = new CalculateObject(new Vector3(1, 0, 0), Quaternion.Euler(0, 0, 0), "xmove");
@@ -144,19 +144,59 @@ namespace VRiscuit.Test
             var xmoveScore = ScoreFunc(xmove);
             var xtenScore = ScoreFunc(xten);
             Func<CalculateObject, float[]> ParamFunc = obj => CalcTwoObjectSimilarityparameters(zero, a, zero, obj);
-            LogArray(ParamFunc(zero));
-            LogArray(ParamFunc(a));
-            LogArray(ParamFunc(ten));
-            LogArray(ParamFunc(xten));
-            LogArray(ParamFunc(zmove));
-            LogArray(ParamFunc(xmove));
+            Debug.Log("zero param:" + ArrayToString(ParamFunc(zero)));
+            Debug.Log("a param" + ArrayToString(ParamFunc(a)));
+            Debug.Log("ten param" + ArrayToString(ParamFunc(ten)));
+            Debug.Log("xten param" + ArrayToString(ParamFunc(xten)));
+            Debug.Log("zmove param" + ArrayToString(ParamFunc(zmove)));
+            Debug.Log("xmove param" + ArrayToString(ParamFunc(xmove)));
             Debug.Log(Angle(zero, a));
             Debug.Log(Angle(zero, ten));
             Debug.Log(Angle(zero, xten));
             Debug.Log(Quaternion.Angle((a as IVRiscuitObject).Rotation, (ten as IVRiscuitObject).Rotation));
             Debug.Log(Quaternion.Angle((a as IVRiscuitObject).Rotation, (xten as IVRiscuitObject).Rotation));
             Debug.Log(Quaternion.Angle((a as IVRiscuitObject).Rotation, Quaternion.Euler(10,0,0)));
-            Assert.That(tenScore, Is.GreaterThan(xtenScore).And.LessThan(aScore));
+            Assert.That(tenScore, Is.GreaterThanOrEqualTo(xtenScore).And.LessThan(aScore));
+            var test = GenCalObj(-7.777673f, -7.777673f, -7.777673f, -2.319252f, 26.60387f, -2.319252f, "test");
+            Debug.Log("Test: " + ScoreFunc(test));
+            Debug.Log("param test" + ArrayToString(ParamFunc(test)));
+            var test2 = GenCalObj(-7.777673f, -7.777673f, -7.777673f, -2.319252f, 36.60387f, -2.319252f, "test");
+            Debug.Log("Test2: " + ScoreFunc(test2));
+            Debug.Log("param test2" + ArrayToString(ParamFunc(test2)));
+            Func<IVRiscuitObject, float[]> diffFunc = obj =>
+            {
+                var objset = new VRiscuitObjectSet(new IVRiscuitObject[] { obj });
+                var ps = objset.ToParameters();
+                return Differential(prms => {
+                    var objs = new VRiscuitObjectSet(objset);
+                    (objs as IVRiscuitObjectSet).SetParameter(prms);
+                    return ScoreFunc(objs.First() as CalculateObject);
+                }, ps);
+            };
+            var diff = diffFunc(test);
+            var diffstr = ArrayToString(diff);
+            Debug.Log("diff test" + ArrayToString(diffFunc(test)));
+            Debug.Log("diff test2" + ArrayToString(diffFunc(test2)));
+
+        }
+
+        private float[] Differential(Func<float[], float> func, float[] parameters)
+        {
+            var ret = new float[parameters.Length];
+            var h = 1f;
+            var current = func(parameters);
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                if (i % 6 > 2)
+                {
+                    h = 10;
+                }
+                parameters[i] += h;
+                var newscore = func(parameters);
+                ret[i] = (newscore - current) / h;
+                parameters[i] -= h;
+            }
+            return ret;
         }
 
         private void LogArray<T>(IEnumerable<T> array)
@@ -187,6 +227,25 @@ namespace VRiscuit.Test
             Debug.Log(Vector3.Angle(Vector3.forward, Vector3.back));
             Debug.Log(Quaternion.Angle(Quaternion.Euler(0, 30, 0), Quaternion.Euler(0, 10, 0)));
             Debug.Log(Quaternion.Angle(Quaternion.Euler(0, 30, 0), Quaternion.Euler(10, 0, 0)));
+            for(int i = 0;i < 18; i++)
+            {
+                Debug.Log(Quaternion.Euler(0, 10 * i, 0));
+            }
+            var beforeR = Quaternion.Euler(10, 10, 10);
+            var afterR = Quaternion.Euler(20, 20, 20);
+            var d1 =  Quaternion.Inverse(afterR) * beforeR;
+            var d2 =  Quaternion.Inverse(beforeR) * afterR;
+            var d3 = beforeR * Quaternion.Inverse(afterR);
+            var d4 = afterR * Quaternion.Inverse(beforeR);
+            var current = Quaternion.Euler(0, 0, 0);
+            Debug.Log((current * d1).eulerAngles);
+            Debug.Log((d1 * current).eulerAngles);
+            Debug.Log((current * d2).eulerAngles);
+            Debug.Log((d2 * current).eulerAngles);
+            Debug.Log((current * d3).eulerAngles);
+            Debug.Log((d3 * current).eulerAngles);
+            Debug.Log((current * d4).eulerAngles);
+            Debug.Log((d4 * current).eulerAngles);
         }
 
         public string ArrayToString<T>(T[] fs)

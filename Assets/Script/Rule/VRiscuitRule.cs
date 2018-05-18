@@ -79,35 +79,56 @@ namespace VRiscuit.Rule {
         /// <param name="afterRuleTable"></param>
         /// <param name="changes"></param>
         private void DescentMethod(IVRiscuitObjectSet currentTable, IVRiscuitObjectSet afterRuleTable, IVRiscuitObjectSet beforeRuleTable) {
-            var limit = 100;
+            var limit = 300;
             var beforeScore = 0.0f;
             var beforec = new VRiscuitObjectSet(currentTable);
             var currentc = new VRiscuitObjectSet(currentTable);
-            float[] parameters = currentc.ToParameters();
+            var parameters = currentc.ToParameters();
+            var beforeDelta = new float[parameters.Length]; 
+
             Func<float[], float> func = delegate (float[] param) {
                 (currentc as IVRiscuitObjectSet).SetParameter(param);
                 return RuleManager.CalcAppliedFieldScore(currentc, beforec, afterRuleTable, beforeRuleTable);
             };
+
+            // alphaの値をルールの動き量で決める
             var a = new VRiscuitObjectSet(afterRuleTable).ToParameters();
             var b = new VRiscuitObjectSet(beforeRuleTable).ToParameters();
             var ParamLength = TwoArrayDistance(a, b);
             var alpha = ParamLength;
+
             var f = 0.001; // scoreの変動がこの値以下になったら終わり
             for(int i = 0; i < limit; i++) {
                 var score = func(parameters);
-                var message = String.Format("{0}: {1}, {2}, {3} => {4} points", i, parameters[0], parameters[1], parameters[2], score);
-                Debug.Log(message);
-                Debug.Log("alpha = " + alpha);
+                var message = String.Format("{0}: {1}, {2}, {3}, {5}, {6}, {7} => {4} points", i, parameters[0], parameters[1], parameters[2], score, parameters[3], parameters[4], parameters[5]);
+                // Debug.Log(message);
+                // Debug.Log("alpha = " + alpha);
                 if (Mathf.Abs(beforeScore - score) <= f && i != 0) {
                     // 終了
                     break;
                 }
                 beforeScore = score;
                 var delta = Differential(func, parameters);
-                // 正規化
                 delta = NormalizeArray(delta);
 
-                Debug.Log("delta = " + delta.Skip(1).Aggregate(delta[0].ToString(), (acc, next) => acc + ", " + next.ToString()));
+                // deltaの中に0の要素があったら、beforeDeltaをもとに前回の変更を半分もとに戻す
+                // その場合次のbeforeDeltaは
+                // 同時にbeforeDeltaの更新
+                for (int di = 0; di < delta.Length; di++)
+                {
+                    if(delta[di] == 0)
+                    {
+                        delta[di] = -(beforeDelta[di] / 2);
+                        beforeDelta[di] /= 2;
+                    }
+                    else
+                    {
+                        beforeDelta[di] = delta[di];
+                    }
+                }
+
+
+                //Debug.Log("delta = " + delta.Skip(1).Aggregate(delta[0].ToString(), (acc, next) => acc + ", " + next.ToString()));
                 for(int j = 0; j < parameters.Length; j++) {
                     parameters[j] += delta[j] * alpha;
                 }
@@ -137,10 +158,6 @@ namespace VRiscuit.Rule {
             var h = 0.01f;
             var current = func(parameters);
             for(int i = 0; i < parameters.Length; i++) {
-                if(i % 6 > 2)
-                {
-                    h = 10;
-                }
                 parameters[i] += h;
                 ret[i] = (func(parameters) - current) / h;
                 parameters[i] -= h;
@@ -161,8 +178,6 @@ namespace VRiscuit.Rule {
 
         private float TwoArrayDistance(float[] a, float[] b)
         {
-            Debug.Log(a.Skip(1).Aggregate(a[0].ToString(), (s, next) => s + ", " + next.ToString()));
-            Debug.Log(b.Skip(1).Aggregate(b[0].ToString(), (s, next) => s + ", " + next.ToString()));
             if (a.Length != b.Length)
             {
                 Debug.LogError("パラメーターの数が異なっています");

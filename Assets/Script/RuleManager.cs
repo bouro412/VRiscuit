@@ -207,14 +207,14 @@ namespace VRiscuit {
             public float c0 = 5f;
             public float c1 = 10;
             public float c2 = 10;
-            public float c3 = 10;
+            public float c3 = 100;
             public float c4 = 1;
             public float c5 = 400;
             public float c6 = 15;
             public float w0 = 1;
             public float w1 = 10000;
             public float w2 = 10000;
-            public float w3 = 1000;
+            public float w3 = 30;
             public float w4 = 1;
         }
 
@@ -244,7 +244,7 @@ namespace VRiscuit {
                 ef.c0 * Delta(Norm(a, b), Norm(x, y), ef.w0),
                 ef.c1 * Eps(a, b, x, y, ef) * Delta(Rdir(a, b), Rdir(x, y), ef.w1),
                 ef.c2 * Eps(a, b, x, y, ef) * Delta(Rdir(b, a), Rdir(y, x), ef.w2),
-                ef.c3 * Delta(Angle(a, b), Angle(x, y), ef.w3)
+                ef.c3 * Delta3(Angle(a, b), Angle(x, y), ef.w3)
             };
         }
 
@@ -287,11 +287,32 @@ namespace VRiscuit {
             return result;
         }
 
-        protected static float Angle(IVRiscuitObject x, IVRiscuitObject y) {
-            var result = Quaternion.Angle(x.Rotation, y.Rotation);
+        protected static Vector3 Angle(IVRiscuitObject x, IVRiscuitObject y) {
+            var result = x.Rotation.eulerAngles - y.Rotation.eulerAngles;
 #if UNITY_EDITOR
-            //Debug.Log(String.Format("Angle({0}, {1}) = {2}", x.Type, y.Type, result));
+//            Debug.Log(String.Format("Angle({0}, {1}) = {2}", x.Rotation, y.Rotation, result));
 #endif
+            return result;
+        }
+
+        protected static float Delta3(Vector3 xs, Vector3 ys, float weight)
+        {
+            var result = (float)Math.Exp(- VectorSubtract(xs, ys) / weight);
+#if UNITY_EDITOR
+            // Debug.Log(String.Format("Delta3({0}, {1}) = {2}", xs, ys, result));
+#endif
+            return result;
+        }
+
+        protected static float VectorSubtract(Vector3 xs, Vector3 ys)
+        {
+            Func<float, float, float> sub = (f1, f2) =>
+            {
+                var d = Math.Abs((f1 - f2) % 360);
+                return d < 180 ? d : 360 - d;
+            };
+            var result = new Vector3(sub(xs.x, ys.x), sub(xs.y, ys.y), sub(xs.z, ys.z)).magnitude;
+            // Debug.Log("VectorSubtract(" + xs + ", " + ys + ") = " + result);
             return result;
         }
 
@@ -306,12 +327,6 @@ namespace VRiscuit {
             return result;
         }
 
-        /*
-        protected static float Eps2(IVRiscuitObject a, IVRiscuitObject b, IVRiscuitObject x, IVRiscuitObject y, ScoreCoefficient ef)
-        {
-
-        }
-        */
         #endregion
         #region テスト用関数
         protected void AddRule(IVRiscuitObject[] before, IVRiscuitObject[] after)
