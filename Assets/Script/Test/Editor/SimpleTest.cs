@@ -15,21 +15,19 @@ namespace VRiscuit.Test {
 
         private RuleManager manager;
 
-        private IRule SimpleRule = new VRiscuitRule(new BeforePattern
-                                                     (new VRiscuitObjectSet
-                                                        (new IVRiscuitObject[] {
-                                                            new CalculateObject(new Vector3(0,0,0), Quaternion.identity, "Cube")
-                                                        })),
-                                                    new AfterPattern
-                                                      (new VRiscuitObjectSet
-                                                        (new IVRiscuitObject[] {
-                                                            new CalculateObject(new Vector3(0,0,1), Quaternion.identity, "Cube")
-                                                          })));
-
         [Test]
         public void StraightSimpleTest() {
             var rules = new IRule[] {
-                SimpleRule
+                new RuleMaker(){
+                    Before = new IVRiscuitObject[]
+                    {
+                        new CalculateObject(new Vector3(0, 0, 0), Quaternion.identity, "Cube")
+                    },
+                    After = new IVRiscuitObject[]
+                    {
+                        new CalculateObject(new Vector3(0, 0, 1), Quaternion.identity, "Cube")
+                    }
+                }.Convert()
             };
             var objs = new VRiscuitObjectSet(new IVRiscuitObject[] { new CalculateObject(new Vector3(0, 0, 0), Quaternion.identity, "Cube") });
             var manager = new RuleManager(objs, rules);

@@ -103,6 +103,7 @@ namespace VRiscuit.Rule {
             GenerateOrDeleteObject(objectsTable, globalTable);
             DescentMethod(objectsTable, beforeTable, _afterObjectSet, _beforeObjectSet);
             // 追加されたオブジェクトをmanagerのobjectSetに追加
+            if (_generatedObjects == null) return;
             foreach(var obj in _generatedObjects)
             {
                 if (IsDebug) {
@@ -111,6 +112,7 @@ namespace VRiscuit.Rule {
                 }
 
             }
+            _generatedObjects = null;
         }
 
         private void GenerateOrDeleteObject(IVRiscuitObjectSet objset, IVRiscuitObjectSet globalTable)
