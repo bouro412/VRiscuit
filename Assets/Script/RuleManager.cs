@@ -75,22 +75,10 @@ namespace VRiscuit {
         private Candidate[] GetApplyCandidates() {
             var result = new List<Candidate>();
             foreach(var rule in _rules) {
-                var objs = rule.BeforeObjectSet.TypeTable;
                 // オブジェクト候補を作れるかのチェック
-                
-                var canMakeCandidate = true;
-                var typesAndObjs = objs.Select(kvp => {
-                    var currentObjs = CurrentObjectSet.GetByType(kvp.Key);
-                    if (currentObjs == null || currentObjs.Count < kvp.Value.Count) {
-                        canMakeCandidate = false;
-                        return new KeyValuePair<string, List<List<IVRiscuitObject>>>();
-                    }
-                    var candInThisType = Permutation(currentObjs, kvp.Value.Count());
-                    return new KeyValuePair<string, List<List<IVRiscuitObject>>>(kvp.Key, candInThisType.ToList());
-                }).ToList();
-                if (canMakeCandidate == false) break;
-                var lis = Choice(typesAndObjs.Select(i => i.Value).ToList()).Select(Flatten);
-                foreach(var objlist in lis) {
+                var typesAndObjs = SameNumberObjectGroupsByType(CurrentObjectSet, rule.BeforeObjectSet);
+                if (typesAndObjs == null) break;
+                foreach(var objlist in typesAndObjs) {
                     var objset = new VRiscuitObjectSet(objlist);
                     var score = CalcScore(rule.BeforeObjectSet, objset, new ScoreCoefficient());
                     var cand = new Candidate(rule, objset, score);
@@ -100,8 +88,32 @@ namespace VRiscuit {
             return result.ToArray();
         }
 
-        private List<T> Flatten<T>(List<List<T>> lislis) {
-            return lislis.SelectMany(i => i).ToList();
+        protected IEnumerable<List<IVRiscuitObject>> SameNumberObjectGroupsByType(IVRiscuitObjectSet objectSet, IVRiscuitObjectSet ruleBeforeSet)
+        {
+            var typesAndObjs = new List<List<List<IVRiscuitObject>>>();
+            foreach(var kvp in ruleBeforeSet.TypeTable)
+            {
+                var currentObjs = CurrentObjectSet.GetByType(kvp.Key);
+                if (currentObjs == null || currentObjs.Count < kvp.Value.Count)
+                {
+                    return null;
+                }
+                typesAndObjs.Add(Permutation(currentObjs, kvp.Value.Count()).ToList());
+            }
+            var choice = Choice(typesAndObjs);
+            var c = choice.ToList();
+            var result = choice.Select(Flatten);
+            var a = result.ToList();
+            return result;
+        }
+
+        private List<T> Flatten<T>(IEnumerable<List<T>> lislis) {
+            var result = new List<T>();
+            foreach (var l in lislis)
+            {
+                result.AddRange(l);
+            }
+            return result;
         }
 
         /// <summary>
@@ -117,7 +129,10 @@ namespace VRiscuit {
             }
             if(objlist.Count() == 1)
             {
-                yield return objlist.First();
+                foreach (var l in objlist.First())
+                {
+                    yield return new List<T> { l };
+                }
             }
             else { 
                 var head = objlist[0];
@@ -127,9 +142,9 @@ namespace VRiscuit {
                     foreach (var restChoice in Choice(tail))
                     {
                         var ret = new List<T>(restChoice)
-                    {
-                        t
-                    };
+                        {
+                            t
+                        };
                         yield return ret;
                     }
                 }

@@ -180,6 +180,14 @@ namespace VRiscuit.Test
 
         }
 
+        [Test]
+        public void GetApplyCandidateTest()
+        {
+            var rules = new IRule[]
+            {
+            };
+        }
+
         private float[] Differential(Func<float[], float> func, float[] parameters)
         {
             var ret = new float[parameters.Length];

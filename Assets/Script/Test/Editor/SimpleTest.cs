@@ -111,15 +111,19 @@ namespace VRiscuit.Test {
             };
             var objs = new VRiscuitObjectSet(new IVRiscuitObject[]
             {
-                new CalculateObject(new Vector3(0, 0, 0), Quaternion.identity, "a")
+                new CalculateObject(new Vector3(0, 0, 0), Quaternion.identity, "a"),
+                new CalculateObject(new Vector3(0, 0, 1), Quaternion.identity, "a")
+
             });
             var manager = new RuleManager(objs, rules);
             int i = 1;
-
             manager.ApplyRule();
-            Debug.Log(string.Format("{0} times Apply: {1}", i++, manager.CurrentObjectSet.ObjectArray.Aggregate("", (str, obj) => str + obj.Type + " ")));
+            Debug.Log(string.Format("{0} times Apply: {1}", i++, manager.CurrentObjectSet.ObjectArray.Aggregate("", (str, obj) => str + obj.Position + " ")));
 
-            Assert.That(((IVRiscuitObjectSet)manager.CurrentObjectSet).Size, Is.EqualTo(2));
+            Assert.That(manager.CurrentObjectSet.Size, Is.EqualTo(4));
+            foreach(var obj in manager.CurrentObjectSet)
+            {
+            }
         }
 
         private void ApplyInSec(Action func, float sec = 1.0f)
