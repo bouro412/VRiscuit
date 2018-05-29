@@ -63,9 +63,9 @@ namespace VRiscuit {
             // Candidateの取得
             var cands = GetApplyCandidates();
             // Score順にソート
-            cands.ToList().Sort(new CandComp());
+            var sorted = cands.OrderBy(cand => -cand.Score).ToList();
             // 先頭から呼び出し & 一度使ったオブジェクトを使うルールは消去
-            CallCands(cands.ToList());
+            CallCands(sorted);
         }
 
         /// <summary>
@@ -136,7 +136,7 @@ namespace VRiscuit {
             }
             else { 
                 var head = objlist[0];
-                var tail = objlist.Skip(0).ToList();
+                var tail = objlist.Skip(1).ToList();
                 foreach (var t in head)
                 {
                     foreach (var restChoice in Choice(tail))
@@ -157,7 +157,9 @@ namespace VRiscuit {
             else {
                 for (int i = 0; i < lis.Count(); i++) {
                     var item = lis.ElementAt(i);
-                    foreach (var perm in Permutation<T>(lis.Skip(i), length - 1)) {
+                    var rest = new List<T>(lis);
+                    rest.RemoveAt(i);
+                    foreach (var perm in Permutation<T>(rest, length - 1)) {
                         var p = new List<T>(perm)
                         {
                             item

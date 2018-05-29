@@ -121,9 +121,70 @@ namespace VRiscuit.Test {
             Debug.Log(string.Format("{0} times Apply: {1}", i++, manager.CurrentObjectSet.ObjectArray.Aggregate("", (str, obj) => str + obj.Position + " ")));
 
             Assert.That(manager.CurrentObjectSet.Size, Is.EqualTo(4));
-            foreach(var obj in manager.CurrentObjectSet)
+        }
+
+        [Test]
+        public void DeleteTest()
+        {
+            var rules = new IRule[]
             {
-            }
+                new RuleMaker()
+                {
+                    Before = new IVRiscuitObject[]
+                    {
+                        new CalculateObject(new Vector3(0, 0, 0), Quaternion.identity, "a"),
+                        new CalculateObject(new Vector3(1, 0, 0), Quaternion.identity, "b")
+                    },
+                    After = new IVRiscuitObject[]
+                    {
+                        new CalculateObject(new Vector3(0, 0, 0), Quaternion.identity, "a")
+                    }
+                }.Convert()
+            };
+            var objs = new VRiscuitObjectSet(new IVRiscuitObject[]
+            {
+                new CalculateObject(new Vector3(0, 0, 0), Quaternion.identity, "a"),
+                new CalculateObject(new Vector3(1, 0, 0), Quaternion.identity, "b")
+
+            });
+            var manager = new RuleManager(objs, rules);
+            int i = 1;
+            manager.ApplyRule();
+            Debug.Log(string.Format("{0} times Apply: {1}", i++, manager.CurrentObjectSet.ObjectArray.Aggregate("", (str, obj) => str + obj.Position + " ")));
+            Assert.That(manager.CurrentObjectSet.Size, Is.EqualTo(1));
+            Assert.That(manager.CurrentObjectSet.First().Type, Is.EqualTo("a"));
+        }
+
+        [Test]
+        public void ChangeObjectTest()
+        {
+            var rules = new IRule[]
+            {
+                new RuleMaker()
+                {
+                    Before = new IVRiscuitObject[]
+                    {
+                        new CalculateObject(new Vector3(0, 0, 0), Quaternion.identity, "a"),
+                    },
+                    After = new IVRiscuitObject[]
+                    {
+                        new CalculateObject(new Vector3(0, 0, 0), Quaternion.identity, "b")
+                    }
+                }.Convert()
+            };
+            var objs = new VRiscuitObjectSet(new IVRiscuitObject[]
+            {
+                new CalculateObject(new Vector3(0, 0, 0), Quaternion.identity, "a"),
+            });
+            var manager = new RuleManager(objs, rules);
+            int i = 1;
+            manager.ApplyRule();
+            Debug.Log(string.Format("{0} times Apply: {1}", i++, manager.CurrentObjectSet.ObjectArray.Aggregate("", (str, obj) => str + obj.Position + " ")));
+            Assert.That(manager.CurrentObjectSet.Size, Is.EqualTo(1));
+            Assert.That(manager.CurrentObjectSet.First().Type, Is.EqualTo("b"));
+            Assert.That(manager.CurrentObjectSet.First().Position.x, Is.EqualTo(0));
+            Assert.That(manager.CurrentObjectSet.First().Position.y, Is.EqualTo(0));
+            Assert.That(manager.CurrentObjectSet.First().Position.z, Is.EqualTo(0));
         }
 
         private void ApplyInSec(Action func, float sec = 1.0f)

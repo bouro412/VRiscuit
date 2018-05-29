@@ -84,14 +84,11 @@ namespace VRiscuit.Rule {
                 }
             }
             // alphaの値をルールの動き量で決める
-            var a = new VRiscuitObjectSet(_afterObjectSet).ToParameters();
-            var bSet = new VRiscuitObjectSet(_beforeObjectSet);
-            GenerateOrDeleteObject(bSet, null);
-            var b = bSet.ToParameters();
-            Debug.Log("a:" + a.Length);
-            Debug.Log("b:" + b.Length);
-            Debug.Log("bset: " + bSet.Count());
-            _paramLength = TwoArrayDistance(a, b);
+            var afterParam = new VRiscuitObjectSet(_afterObjectSet).ToParameters();
+            var beforeSet = new VRiscuitObjectSet(_beforeObjectSet);
+            GenerateOrDeleteObject(beforeSet, null);
+            var beforeParam = beforeSet.ToParameters();
+            _paramLength = TwoArrayDistance(afterParam, beforeParam);
         }
 
         /// <summary>
@@ -138,10 +135,14 @@ namespace VRiscuit.Rule {
                             }
                         }
                         objs.RemoveAll((a) => true);
+                        return;
                     }
                     for(int i = 0; i < -val; i++)
                     {
-                        globalTable.Delete(objs[i]);
+                        if (globalTable != null)
+                        {
+                            globalTable.Delete(objs[i]);
+                        }
                         objs.RemoveAt(i);
                     }
                 }
@@ -176,6 +177,7 @@ namespace VRiscuit.Rule {
             var beforec = new VRiscuitObjectSet(beforeTable);
             var currentc = new VRiscuitObjectSet(currentTable);
             var parameters = currentc.ToParameters();
+            var firstParam = currentc.ToParameters();
             var beforeDelta = new float[parameters.Length];
 
             Func<float[], float> func = delegate (float[] param)
@@ -225,14 +227,14 @@ namespace VRiscuit.Rule {
                 // Debug.Log("parameter = " + parameters.Skip(1).Aggregate(parameters[0].ToString(), (acc, next) => acc + ", " + next.ToString()));
                 alpha *= Mathf.Max((float)Math.Exp(-alpha), 0.1f);
             }
-            var beforeParam = beforec.ToParameters();
-            var d = new float[beforeParam.Length];
-            for (int i = 0; i < beforeParam.Length; i++)
+            var len = firstParam.Length;
+            var d = new float[len];
+            for (int i = 0; i < len; i++)
             {
-                var di = parameters[i] - beforeParam[i];
+                var di = parameters[i] - firstParam[i];
                 // 細かい部分を四捨五入, 秒間スピードに変更
                 di = ((float)Math.Round(di, 1)) * Time.deltaTime;
-                parameters[i] = beforeParam[i] + di;
+                parameters[i] = firstParam[i] + di;
             }
             currentTable.SetParameter(parameters);
         }

@@ -216,6 +216,14 @@ namespace VRiscuit.Test
         [Test]
         public void OnlyLog()
         {
+            var lis = new List<int>() { 1, 2, 3, 4, 5 };
+
+            LogArray(lis.Skip(0));
+            LogArray(lis.Skip(1));
+            LogArray(lis.Skip(2));
+            LogArray(lis.Skip(3));
+            LogArray(lis.Skip(4));
+
             var q1 = Quaternion.AngleAxis(30, Vector3.right);
             var q2 = Quaternion.AngleAxis(-30, Vector3.right);
             IVRiscuitObject zero = new CalculateObject(new Vector3(0, 0, 0), Quaternion.Euler(0, 0, 0), "zero");
@@ -256,10 +264,46 @@ namespace VRiscuit.Test
             Debug.Log((d4 * current).eulerAngles);
         }
 
+        [Test]
+        public void CandsSortTest()
+        {
+            var r = new VRiscuitRule(new BeforePattern(new VRiscuitObjectSet()),
+                                     new AfterPattern(new VRiscuitObjectSet()));
+            var a = new Candidate(r, new VRiscuitObjectSet(), 100);
+            var b = new Candidate(r, new VRiscuitObjectSet(), 80);
+            var c = new Candidate(r, new VRiscuitObjectSet(), 60);
+            var d = new Candidate(r, new VRiscuitObjectSet(), 40);
+            var cands = new Candidate[] { b, d, a, c };
+            cands = cands.OrderBy(cand => - cand.Score).ToArray();
+            Debug.Log(cands.Skip(1).Aggregate(cands[0].Score.ToString(), (str, next) => str + ", " + next.Score.ToString()));
+            Assert.That(cands[0].Score, Is.EqualTo(100));
+            Assert.That(cands[1].Score, Is.EqualTo(80));
+            Assert.That(cands[2].Score, Is.EqualTo(60));
+            Assert.That(cands[3].Score, Is.EqualTo(40));
+        }
+
         public string ArrayToString<T>(T[] fs)
         {
             var message = fs.Aggregate("", (t, acc) => t.ToString() + ", " + acc.ToString());
             return "[" + message.Substring(2) + "]";
         }
+
+        [Test]
+        public void CandScoreTest()
+        {
+            var zero = new CalculateObject(new Vector3(0, 0, 0), Quaternion.identity, "zero");
+            var one = new CalculateObject(new Vector3(1, 0, 0), Quaternion.identity, "one");
+            var ruleBefore = new VRiscuitObjectSet(new IVRiscuitObject[] { zero, one });
+            var case1 = new VRiscuitObjectSet(new IVRiscuitObject[] { zero, one });
+            var case2 = new VRiscuitObjectSet(new IVRiscuitObject[] { one, zero });
+            var score1 = CalcScore(ruleBefore, case1, new ScoreCoefficient());
+            var score2 = CalcScore(ruleBefore, case2, new ScoreCoefficient());
+            Func<CalculateObject, CalculateObject, float[]> ParamFunc = (o1, o2) => CalcTwoObjectSimilarityparameters(zero, one, o1, o2);
+            LogArray(ParamFunc(zero, one));
+            LogArray(ParamFunc(one, zero));
+            Assert.That(score1, Is.EqualTo(score2));
+        }
+
+
     }
 }

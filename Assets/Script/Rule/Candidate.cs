@@ -7,7 +7,7 @@ using VRiscuit.Interface;
 using UnityEngine;
 
 namespace VRiscuit.Rule {
-    class Candidate {
+    public class Candidate {
         private IRule _rule;
         private IVRiscuitObjectSet _table;
         public float Score { get; private set; }
