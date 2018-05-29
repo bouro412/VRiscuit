@@ -182,9 +182,9 @@ namespace VRiscuit.Test {
             Debug.Log(string.Format("{0} times Apply: {1}", i++, manager.CurrentObjectSet.ObjectArray.Aggregate("", (str, obj) => str + obj.Position + " ")));
             Assert.That(manager.CurrentObjectSet.Size, Is.EqualTo(1));
             Assert.That(manager.CurrentObjectSet.First().Type, Is.EqualTo("b"));
-            Assert.That(manager.CurrentObjectSet.First().Position.x, Is.EqualTo(0));
-            Assert.That(manager.CurrentObjectSet.First().Position.y, Is.EqualTo(0));
-            Assert.That(manager.CurrentObjectSet.First().Position.z, Is.EqualTo(0));
+            Assert.That(manager.CurrentObjectSet.First().Position.x, Is.GreaterThan(-0.1f).And.LessThan(0.1f));
+            Assert.That(manager.CurrentObjectSet.First().Position.y, Is.GreaterThan(-0.1f).And.LessThan(0.1f));
+            Assert.That(manager.CurrentObjectSet.First().Position.z, Is.GreaterThan(-0.1f).And.LessThan(0.1f));
         }
 
         private void ApplyInSec(Action func, float sec = 1.0f)

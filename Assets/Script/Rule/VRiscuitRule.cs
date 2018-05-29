@@ -192,7 +192,7 @@ namespace VRiscuit.Rule {
             {
                 var score = func(parameters);
                 var message = String.Format("{0}: {1}, {2}, {3}, {5}, {6}, {7} => {4} points", i, parameters[0], parameters[1], parameters[2], score, parameters[3], parameters[4], parameters[5]);
-                // Debug.Log(message);
+                Debug.Log(message);
                 // Debug.Log("alpha = " + alpha);
                 if (Mathf.Abs(beforeScore - score) <= f && i != 0)
                 {
@@ -219,7 +219,7 @@ namespace VRiscuit.Rule {
                     }
                 }
 
-                //Debug.Log("delta = " + delta.Skip(1).Aggregate(delta[0].ToString(), (acc, next) => acc + ", " + next.ToString()));
+                // Debug.Log("delta = " + delta.Skip(1).Aggregate(delta[0].ToString(), (acc, next) => acc + ", " + next.ToString()));
                 for (int j = 0; j < parameters.Length; j++)
                 {
                     parameters[j] += delta[j] * alpha;
@@ -227,14 +227,19 @@ namespace VRiscuit.Rule {
                 // Debug.Log("parameter = " + parameters.Skip(1).Aggregate(parameters[0].ToString(), (acc, next) => acc + ", " + next.ToString()));
                 alpha *= Mathf.Max((float)Math.Exp(-alpha), 0.1f);
             }
-            var len = firstParam.Length;
-            var d = new float[len];
-            for (int i = 0; i < len; i++)
+            // オブジェクトの生成、削除がある場合には、1fで動かす
+            // そうでない場合には、１秒かけて動かすように調整する
+            if (!isGenerateOrDeleteObject)
             {
-                var di = parameters[i] - firstParam[i];
-                // 細かい部分を四捨五入, 秒間スピードに変更
-                di = ((float)Math.Round(di, 1)) * Time.deltaTime;
-                parameters[i] = firstParam[i] + di;
+                var len = firstParam.Length;
+                var d = new float[len];
+                for (int i = 0; i < len; i++)
+                {
+                    var di = parameters[i] - firstParam[i];
+                    // 細かい部分を四捨五入, 秒間スピードに変更
+                    di = ((float)Math.Round(di, 1)) * Time.deltaTime;
+                    parameters[i] = firstParam[i] + di;
+                }
             }
             currentTable.SetParameter(parameters);
         }
