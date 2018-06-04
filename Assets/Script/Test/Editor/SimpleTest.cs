@@ -105,7 +105,7 @@ namespace VRiscuit.Test {
                     After = new IVRiscuitObject[]
                     {
                         new CalculateObject(new Vector3(0, 0, 0), Quaternion.identity, "a"),
-                        new CalculateObject(new Vector3(1, 0, 0), Quaternion.identity, "a")
+                        new CalculateObject(new Vector3(1, 1, 1), Quaternion.identity, "b")
                     }
                 }.Convert()
             };

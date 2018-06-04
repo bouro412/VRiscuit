@@ -172,7 +172,7 @@ namespace VRiscuit.Rule {
         /// <param name="changes"></param>
         private void DescentMethod(IVRiscuitObjectSet currentTable, IVRiscuitObjectSet beforeTable, IVRiscuitObjectSet afterRuleTable, IVRiscuitObjectSet beforeRuleTable)
         {
-            var limit = 300;
+            var limit = 100;
             var beforeScore = 0.0f;
             var beforec = new VRiscuitObjectSet(beforeTable);
             var currentc = new VRiscuitObjectSet(currentTable);
@@ -191,8 +191,8 @@ namespace VRiscuit.Rule {
             for (int i = 0; i < limit; i++)
             {
                 var score = func(parameters);
-                var message = String.Format("{0}: {1}, {2}, {3}, {5}, {6}, {7} => {4} points", i, parameters[0], parameters[1], parameters[2], score, parameters[3], parameters[4], parameters[5]);
-                Debug.Log(message);
+                // var message = String.Format("{0}: {1}, {2}, {3}, {5}, {6}, {7} => {4} points", i, parameters[0], parameters[1], parameters[2], score, parameters[3], parameters[4], parameters[5]);
+                //Debug.Log(message);
                 // Debug.Log("alpha = " + alpha);
                 if (Mathf.Abs(beforeScore - score) <= f && i != 0)
                 {

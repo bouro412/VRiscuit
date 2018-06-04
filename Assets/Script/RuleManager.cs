@@ -189,12 +189,19 @@ namespace VRiscuit {
 
         public static float CalcAppliedFieldScore(IVRiscuitObjectSet currentField, IVRiscuitObjectSet beforeField, IVRiscuitObjectSet afterRuleSet, IVRiscuitObjectSet beforeRuleSet) {
             var score = 0.0f;
-            for(int a = 0; a < currentField.Size; a++) {
-                for (int b = 0; b < beforeField.Size; b++) {
-                    score += CalcTwoObjectSimilarity(beforeRuleSet[b], afterRuleSet[a], beforeField[b], currentField[a], new ScoreCoefficient());
+            var beforeRuleSetArray = beforeRuleSet.ObjectArray;
+            var afterRuleSetArray = afterRuleSet.ObjectArray;
+            var beforeFieldArray = beforeField.ObjectArray;
+            var currentFieldArray = currentField.ObjectArray;
+            var currentSize = currentField.Size;
+            var beforeSize = beforeField.Size;
+            var ef = new ScoreCoefficient();
+            for(int a = 0; a < currentSize; a++) {
+                for (int b = 0; b < beforeSize; b++) {
+                    score += CalcTwoObjectSimilarity(beforeRuleSetArray[b], afterRuleSetArray[a], beforeFieldArray[b], currentFieldArray[a], ef);
                 }
             }
-            score += CalcScore(afterRuleSet, currentField, new ScoreCoefficient());
+            score += CalcScore(afterRuleSet, currentField, ef);
             return score;
         }
 

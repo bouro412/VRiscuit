@@ -22,6 +22,7 @@ namespace VRiscuit {
         {
             public SimpleObject[] Before;
             public SimpleObject[] After;
+            public bool Enable;
         }
 
         [SerializeField]
@@ -45,7 +46,7 @@ namespace VRiscuit {
                 _vRules = new VRiscuitRule[0];
                 return;
             }
-            _vRules = _rules.Select(RuleConverter).ToArray();
+            _vRules = _rules.Where(r => r.Enable).Select(RuleConverter).ToArray();
         }
 
         private CalculateObject ObjectConverter(SimpleObject obj)

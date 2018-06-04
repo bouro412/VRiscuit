@@ -28,13 +28,32 @@ namespace VRiscuit {
         {
             get
             {
-                var lis = _table.ToList();
-                lis.Sort(delegate (KeyValuePair<string, List<IVRiscuitObject>> kvp1, KeyValuePair<string, List<IVRiscuitObject>> kvp2) {
-                    return String.Compare(kvp1.Key, kvp2.Key);
-                });
-                return lis.Select(i => i.Value).SelectMany(i => i).ToArray();
+                if (_array == null) {
+                    _array = GenerateArray();
+                }
+                return _array; 
             }
         }
+
+        private IVRiscuitObject[] GenerateArray()
+        {
+            var lis = _table.ToList();
+            lis.Sort(delegate (KeyValuePair<string, List<IVRiscuitObject>> kvp1, KeyValuePair<string, List<IVRiscuitObject>> kvp2) {
+                return String.Compare(kvp1.Key, kvp2.Key);
+            });
+            return lis.Select(i => i.Value).SelectMany(i => i).ToArray();
+        }
+
+        private IVRiscuitObject[] _array { get; set; }
+
+        /// <summary>
+        /// Cached Arrayの更新
+        /// </summary>
+        private void UpdateArray()
+        {
+            _array = GenerateArray();
+        }
+
         /// <summary>
         /// オブジェクトの追加
         /// indexを返り値で返す
@@ -51,6 +70,7 @@ namespace VRiscuit {
                 };
                 _table.Add(type, lis);
             }
+            UpdateArray();
             var ary = (this as IVRiscuitObjectSet).ObjectArray;
             for(int i = 0;i < ary.Length; i++) {
                 if(ary[i] == newObject) {
@@ -59,6 +79,7 @@ namespace VRiscuit {
             }
             return -1;
         }
+
         List<IVRiscuitObject> IVRiscuitObjectSet.GetByType(string type) {
             if(_table.ContainsKey(type))
                 return _table[type];
@@ -77,6 +98,7 @@ namespace VRiscuit {
             }
             var type = target.Type;
             _table[type].Remove(target);
+            UpdateArray();
         }
 
         void IVRiscuitObjectSet.Delete(IVRiscuitObject obj)
@@ -84,6 +106,7 @@ namespace VRiscuit {
             if(_table.ContainsKey(obj.Type) && _table[obj.Type].Contains(obj))
             {
                 _table[obj.Type].Remove(obj);
+                UpdateArray();
             }
             else
             {
