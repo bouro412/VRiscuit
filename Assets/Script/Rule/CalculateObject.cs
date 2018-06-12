@@ -46,6 +46,12 @@ namespace VRiscuit.Rule {
                 return _type;
             }
         }
+
+        void IVRiscuitObject.Delete()
+        {
+
+        }
+
         public CalculateObject(Vector3 position, Quaternion rotate, string type) {
             _position = position;
             _rotation = rotate;

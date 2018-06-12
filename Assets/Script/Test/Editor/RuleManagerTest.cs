@@ -216,6 +216,20 @@ namespace VRiscuit.Test
         [Test]
         public void OnlyLog()
         {
+            var objset = new VRiscuitObjectSet(new IVRiscuitObject[] {
+                new CalculateObject(Vector3.zero, Quaternion.identity, "a"),
+                new CalculateObject(Vector3.zero, Quaternion.identity, "a"),
+                new CalculateObject(Vector3.zero, Quaternion.identity, "a"),
+                new CalculateObject(Vector3.zero, Quaternion.identity, "a")
+            });
+            var objs = (objset as IVRiscuitObjectSet).TypeTable["a"];
+            objs.RemoveAt(0);
+            objs.RemoveAt(0);
+            objs.RemoveAt(0);
+            Debug.Log(objs.Count);
+            Debug.Log((objset as IVRiscuitObjectSet).TypeTable["a"].Count);
+            Debug.Log((objset as IVRiscuitObjectSet).Size);
+
             var lis = new List<int>() { 1, 2, 3, 4, 5 };
 
             LogArray(lis.Skip(0));

@@ -8,6 +8,8 @@ using VRiscuit.Interface;
 
 namespace VRiscuit {
     class VRiscuitObject : MonoBehaviour, IVRiscuitObject {
+        private bool _isDeleted = false;
+
         Vector3 IVRiscuitObject.Position
         {
             get
@@ -39,6 +41,12 @@ namespace VRiscuit {
                 return _objectType;
             }
         }
+
+        void IVRiscuitObject.Delete() {
+            _isDeleted = true;
+        }
+
+
         [SerializeField]
         private string _objectType;
         void Move(Vector3 vector) {
@@ -49,6 +57,14 @@ namespace VRiscuit {
             transform.position = position;
             transform.rotation = angle;
             _objectType = type;
+        }
+
+        public void Update()
+        {
+            if(_isDeleted == true)
+            {
+                DestroyImmediate(gameObject);
+            }
         }
     }
 }

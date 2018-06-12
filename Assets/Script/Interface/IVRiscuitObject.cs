@@ -9,5 +9,6 @@ namespace VRiscuit.Interface {
         string Type { get; }
         Vector3 Position { get; set; }
         Quaternion Rotation { get; set; }
+        void Delete();
     }
 }

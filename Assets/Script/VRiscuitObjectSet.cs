@@ -98,6 +98,7 @@ namespace VRiscuit {
             }
             var type = target.Type;
             _table[type].Remove(target);
+            target.Delete();
             UpdateArray();
         }
 
@@ -106,6 +107,7 @@ namespace VRiscuit {
             if(_table.ContainsKey(obj.Type) && _table[obj.Type].Contains(obj))
             {
                 _table[obj.Type].Remove(obj);
+                obj.Delete();
                 UpdateArray();
             }
             else

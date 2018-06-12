@@ -179,9 +179,9 @@ namespace VRiscuit {
             if(cands.Count == 0) 
                 return;
             var head = cands[0];
-            var tail = cands.Skip(1);
+            var tail = cands.Skip(1).Where(cand => !head.HasSameObject(cand)).ToList();
             head.RuleApply(CurrentObjectSet);
-            CallCands(tail.Where(cand => !head.HasSameObject(cand)).ToList());
+            CallCands(tail);
         }
 
         #endregion

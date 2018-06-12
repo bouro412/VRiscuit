@@ -132,18 +132,18 @@ namespace VRiscuit.Rule {
                             foreach(var obj in objs)
                             {
                                 globalTable.Delete(obj);
+                                objset.Delete(obj);
                             }
                         }
-                        objs.RemoveAll((a) => true);
                         return;
                     }
                     for(int i = 0; i < -val; i++)
                     {
                         if (globalTable != null)
                         {
-                            globalTable.Delete(objs[i]);
+                            globalTable.Delete(objs[0]);
                         }
-                        objs.RemoveAt(i);
+                        objset.Delete(objs[0]);
                     }
                 }
                 else if(val > 0)
