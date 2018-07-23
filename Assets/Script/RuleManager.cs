@@ -65,6 +65,7 @@ namespace VRiscuit {
             // Score順にソート
             var sorted = cands.OrderBy(cand => -cand.Score).ToList();
             // 先頭から呼び出し & 一度使ったオブジェクトを使うルールは消去
+            Debug.Log(String.Format("one {0}, two {1}", sorted[0].Score, sorted[sorted.Count - 1].Score));
             CallCands(sorted);
         }
 
@@ -72,7 +73,7 @@ namespace VRiscuit {
         /// 現在のゲームフィールドからルールが適用可能な候補を取得する
         /// </summary>
         /// <returns></returns>
-        private Candidate[] GetApplyCandidates() {
+        public Candidate[] GetApplyCandidates() {
             var result = new List<Candidate>();
             foreach(var rule in _rules) {
                 // オブジェクト候補を作れるかのチェック
@@ -80,7 +81,12 @@ namespace VRiscuit {
                 if (typesAndObjs == null) break;
                 foreach(var objlist in typesAndObjs) {
                     var objset = new VRiscuitObjectSet(objlist);
-                    var score = CalcScore(rule.BeforeObjectSet, objset, new ScoreCoefficient());
+                    var score = CalcScore(rule.BeforeObjectSet, objset, rule.RuleScoreCoefficient);
+                    // scoreで足切り
+                    if (NormalizeScore(score) < 0.1)
+                    {
+                        continue;
+                    }
                     var cand = new Candidate(rule, objset, score);
                     result.Add(cand);
                 }
@@ -184,25 +190,34 @@ namespace VRiscuit {
             CallCands(tail);
         }
 
+        public static float NormalizeScore(float[] scoreAndMax)
+        {
+            return scoreAndMax[0] / scoreAndMax[1];
+        }
+
         #endregion
         #region scoreの計算
 
-        public static float CalcAppliedFieldScore(IVRiscuitObjectSet currentField, IVRiscuitObjectSet beforeField, IVRiscuitObjectSet afterRuleSet, IVRiscuitObjectSet beforeRuleSet) {
+        public static float[] CalcAppliedFieldScore(IVRiscuitObjectSet currentField, IVRiscuitObjectSet beforeField, IVRiscuitObjectSet afterRuleSet, IVRiscuitObjectSet beforeRuleSet, ScoreCoefficient ef) {
             var score = 0.0f;
+            var max = 0.0f;
             var beforeRuleSetArray = beforeRuleSet.ObjectArray;
             var afterRuleSetArray = afterRuleSet.ObjectArray;
             var beforeFieldArray = beforeField.ObjectArray;
             var currentFieldArray = currentField.ObjectArray;
             var currentSize = currentField.Size;
             var beforeSize = beforeField.Size;
-            var ef = new ScoreCoefficient();
             for(int a = 0; a < currentSize; a++) {
                 for (int b = 0; b < beforeSize; b++) {
-                    score += CalcTwoObjectSimilarity(beforeRuleSetArray[b], afterRuleSetArray[a], beforeFieldArray[b], currentFieldArray[a], ef);
+                    var f = CalcTwoObjectSimilarity(beforeRuleSetArray[b], afterRuleSetArray[a], beforeFieldArray[b], currentFieldArray[a], ef);
+                    score += f[0];
+                    max += f[1];
                 }
             }
-            score += CalcScore(afterRuleSet, currentField, ef);
-            return score;
+            var cc = CalcScore(afterRuleSet, currentField, ef);
+            score += cc[0];
+            max += cc[1];
+            return new float[] { score, max};
         }
 
         /// <summary>
@@ -212,33 +227,25 @@ namespace VRiscuit {
         /// <param name="fieldObjectSet"></param>
         /// <param name="ef"></param>
         /// <returns></returns>
-        public static float CalcScore(IVRiscuitObjectSet ruleObjectSet, IVRiscuitObjectSet fieldObjectSet, ScoreCoefficient ef) {
+        public static float[] CalcScore(IVRiscuitObjectSet ruleObjectSet, IVRiscuitObjectSet fieldObjectSet, ScoreCoefficient ef) {
             var score = 0.0f;
+            var max = 0.0f;
             var ruleObjectList = ruleObjectSet.ObjectArray;
             var fieldObjectList = fieldObjectSet.ObjectArray;
             var len = fieldObjectList.Length;
+            if(len == 1)
+            {
+                return new float[] { 10, 10 };
+            }
             for (int i = 0; i < len - 1; i++) {
                 for (int j = i + 1; j < len; j++) {
-                    score += CalcTwoObjectSimilarity(ruleObjectList[i], ruleObjectList[j],
+                    var fs = CalcTwoObjectSimilarity(ruleObjectList[i], ruleObjectList[j],
                         fieldObjectList[i], fieldObjectList[j], ef);
+                    score += fs[0];
+                    max += fs[1];
                 }
             }
-            return score;
-        }
-
-        public class ScoreCoefficient {
-            public float c0 = 5f;
-            public float c1 = 10;
-            public float c2 = 10;
-            public float c3 = 100;
-            public float c4 = 1;
-            public float c5 = 400;
-            public float c6 = 15;
-            public float w0 = 1;
-            public float w1 = 10000;
-            public float w2 = 10000;
-            public float w3 = 30;
-            public float w4 = 1;
+            return new float[] { score, max };
         }
 
         public static readonly float alpha = 0.01f;
@@ -252,23 +259,29 @@ namespace VRiscuit {
         /// <param name="y"></param>
         /// <param name="ef"></param>
         /// <returns></returns>
-        public static float CalcTwoObjectSimilarity(IVRiscuitObject a, IVRiscuitObject b, IVRiscuitObject x, IVRiscuitObject y, ScoreCoefficient ef) {
-            return CalcTwoObjectSimilarityparameters(a, b, x, y).Sum();
+        public static float[] CalcTwoObjectSimilarity(IVRiscuitObject a, IVRiscuitObject b, IVRiscuitObject x, IVRiscuitObject y, ScoreCoefficient ef) {
+            var fs = CalcTwoObjectSimilarityparameters(a, b, x, y, ef);
+            var score = fs[0] + fs[1] + fs[2] + fs[3];
+            return new float[2] { score, fs[4] };
         }        
 
-        public static float CalcTwoObjectSimilarity(IVRiscuitObject a, IVRiscuitObject b, IVRiscuitObject x, IVRiscuitObject y)
+        public static float[] CalcTwoObjectSimilarity(IVRiscuitObject a, IVRiscuitObject b, IVRiscuitObject x, IVRiscuitObject y)
         {
             return CalcTwoObjectSimilarity(a, b, x, y, new ScoreCoefficient());
         }
 
         protected static float[] CalcTwoObjectSimilarityparameters(IVRiscuitObject a, IVRiscuitObject b, IVRiscuitObject x, IVRiscuitObject y, ScoreCoefficient ef)
         {
-            return new float[] {
-                ef.c0 * Delta(Norm(a, b), Norm(x, y), ef.w0),
-                ef.c1 * Eps(a, b, x, y, ef) * Delta(Rdir(a, b), Rdir(x, y), ef.w1),
-                ef.c2 * Eps(a, b, x, y, ef) * Delta(Rdir(b, a), Rdir(y, x), ef.w2),
-                ef.c3 * Delta3(Angle(a, b), Angle(x, y), ef.w3)
+            var eps = Eps(a, b, x, y, ef);
+            var max = ef.NormWeight + eps * (ef.RdirWeight1 + ef.RdirWeight2) + ef.AngleWeight;
+            var score = new float[]{
+                ef.NormWeight * Delta(Norm(a, b), Norm(x, y), ef.NormLeveling),
+                ef.RdirWeight1 * eps * Delta(Rdir(a, b), Rdir(x, y), ef.RdirLeveling1),
+                ef.RdirWeight2 * eps * Delta(Rdir(b, a), Rdir(y, x), ef.RdirLeveling2),
+                ef.AngleWeight * Delta3(Angle(a, b), Angle(x, y), ef.AngleLeveling),
+                max
             };
+            return score;
         }
 
         protected static float[] CalcTwoObjectSimilarityparameters(IVRiscuitObject a, IVRiscuitObject b, IVRiscuitObject x, IVRiscuitObject y)
@@ -343,7 +356,7 @@ namespace VRiscuit {
             var ab = Norm(a, b);
             var xy = Norm(x, y);
             if (ab == 0) return 0;
-            var result = (float)(1 - Math.Exp(-ef.c5 / Math.Pow(ab /*+ xy*/ + ef.c6, 2)));
+            var result = (float)(1 - Math.Exp(-ef.EpsWeight1 / Math.Pow(ab /*+ xy*/ + ef.EpsWeight2, 2)));
 #if UNITY_EDITOR
             // Debug.Log(String.Format("Eps({0}, {1}, {2}, {3}) = {4}", a.Type, b.Type, x.Type, y.Type, result));
 #endif

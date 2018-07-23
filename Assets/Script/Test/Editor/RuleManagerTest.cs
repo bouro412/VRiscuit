@@ -119,7 +119,7 @@ namespace VRiscuit.Test
 
         private Func<CalculateObject, float> ScoreFun(CalculateObject before, CalculateObject after, CalculateObject start)
         {
-            return obj => CalcTwoObjectSimilarity(before, after, start, obj);
+            return obj => NormalizeScore(CalcTwoObjectSimilarity(before, after, start, obj));
         }
 
         private Func<CalculateObject, float> ScoreFun(CalculateObject before, CalculateObject after)
@@ -136,7 +136,7 @@ namespace VRiscuit.Test
             var xten = new CalculateObject(new Vector3(0, 0, 0), Quaternion.Euler(10, 0, 0), "xten");
             var zmove = new CalculateObject(new Vector3(0, 0, 1), Quaternion.Euler(0, 0, 0), "zmove");
             var xmove = new CalculateObject(new Vector3(1, 0, 0), Quaternion.Euler(0, 0, 0), "xmove");
-            Func<CalculateObject, float> ScoreFunc = obj => CalcTwoObjectSimilarity(zero, a, zero, obj);
+            Func<CalculateObject, float> ScoreFunc = obj => NormalizeScore(CalcTwoObjectSimilarity(zero, a, zero, obj));
             var zeroScore = ScoreFunc(zero);
             var aScore = ScoreFunc(a);
             var tenScore = ScoreFunc(ten);

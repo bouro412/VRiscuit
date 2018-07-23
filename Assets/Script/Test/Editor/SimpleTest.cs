@@ -187,6 +187,44 @@ namespace VRiscuit.Test {
             Assert.That(manager.CurrentObjectSet.First().Position.z, Is.GreaterThan(-0.1f).And.LessThan(0.1f));
         }
 
+        [Test]
+        public void MultiObjectTest()
+        {
+            var rules = new IRule[]
+            {
+                new RuleMaker()
+                {
+                    Before = new IVRiscuitObject[]
+                    {
+                        new CalculateObject(Vector3.zero, Quaternion.identity, "a")
+                    },
+                    After = new IVRiscuitObject[]
+                    {
+                        new CalculateObject(new Vector3(0, 0, 1), Quaternion.identity, "a")
+                    }
+                 }.Convert(),
+                new RuleMaker()
+                {
+                    Before = new IVRiscuitObject[]
+                    {
+                        new CalculateObject(Vector3.zero, Quaternion.identity, "a"),
+                        new CalculateObject(Vector3.zero, Quaternion.Euler(0, 180, 0), "a")
+                    },
+                    After = new IVRiscuitObject[0]
+                }.Convert()
+            };
+            var objs = new VRiscuitObjectSet(new IVRiscuitObject[]{
+                new CalculateObject(new Vector3(0, 0, 0), Quaternion.identity, "a"),
+                new CalculateObject(new Vector3(0, 1, 0), Quaternion.identity, "a"),
+                new CalculateObject(new Vector3(0, 2, 0), Quaternion.identity, "a"),
+                new CalculateObject(new Vector3(0, 0, 0), Quaternion.Euler(0, 180, 0), "a"),
+                new CalculateObject(new Vector3(0, 1, 0), Quaternion.Euler(0, 180, 0), "a"),
+                new CalculateObject(new Vector3(0, 2, 0), Quaternion.Euler(0, 180, 0), "a"),
+            });
+            var manager = new RuleManager(objs, rules);
+            var cands = manager.GetApplyCandidates();
+        }
+
         private void ApplyInSec(Action func, float sec = 1.0f)
         {
             var sum = 0.0f;

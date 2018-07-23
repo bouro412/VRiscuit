@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using VRiscuit.Rule;
 
 namespace VRiscuit.Interface {
     public interface IRule {
@@ -14,6 +15,8 @@ namespace VRiscuit.Interface {
         /// ルール適用後のオブジェクトテーブル
         /// </summary>
         IVRiscuitObjectSet AfterObjectSet { get; }
+
+        ScoreCoefficient RuleScoreCoefficient { get; }
 
         /// <summary>
         /// ルールを適用するメソッド

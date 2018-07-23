@@ -58,13 +58,18 @@ namespace VRiscuit.Rule {
 
         private float _paramLength;
 
+        private ScoreCoefficient _coefficient;
+
+        ScoreCoefficient IRule.RuleScoreCoefficient { get { return _coefficient; } }
+
         /// <summary>
         /// </summary>
         /// <param name="before"></param>
         /// <param name="after"></param>
-        public VRiscuitRule(IBeforePattern before, IAfterPattern after, bool isDebug = false) {
+        public VRiscuitRule(IBeforePattern before, IAfterPattern after, ScoreCoefficient sce, bool isDebug = false) {
             BeforePattern = before;
             AfterPattern = after;
+            _coefficient = sce;
             _beforeObjectSet = BeforePattern.VRiscuitObjects;
             _afterObjectSet = AfterPattern.ResultObjectSet;
             _genDelTable = new Dictionary<string, int>(_afterObjectSet.DistributionTable);
@@ -90,6 +95,9 @@ namespace VRiscuit.Rule {
             var beforeParam = beforeSet.ToParameters();
             _paramLength = TwoArrayDistance(afterParam, beforeParam);
         }
+
+        public VRiscuitRule(IBeforePattern before, IAfterPattern after, bool isDebug = false) 
+            : this(before, after,new ScoreCoefficient() , isDebug) { }
 
         /// <summary>
         /// ルールの適用
@@ -183,7 +191,8 @@ namespace VRiscuit.Rule {
             Func<float[], float> func = delegate (float[] param)
             {
                 (currentc as IVRiscuitObjectSet).SetParameter(param);
-                return RuleManager.CalcAppliedFieldScore(currentc, beforec, afterRuleTable, beforeRuleTable);
+                var scores = RuleManager.CalcAppliedFieldScore(currentc, beforec, afterRuleTable, beforeRuleTable, (this as IRule).RuleScoreCoefficient);
+                return scores[0] / scores[1];
             };
             var alpha = _paramLength;
 
